@@ -7,8 +7,10 @@
   <meta name="description" content="Currency Converter — real-time exchange rates" />
   <title>Giá.exchange — Currency Converter</title>
   <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="favicon.ico" sizes="any" />
+  <link rel="icon" href="icon-192.png" type="image/png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -24,8 +26,8 @@
       --accent: #d4ff00;
       --accent-dim: #8aaa00;
       --danger: #ff4444;
-      --mono: 'IBM Plex Mono', monospace;
-      --sans: 'IBM Plex Sans', sans-serif;
+      --mono: 'Space Mono', monospace;
+      --sans: 'Space Mono', monospace;
     }
 
     html, body {
@@ -135,11 +137,17 @@
       font-weight: 500;
       color: var(--accent);
       letter-spacing: 0.05em;
+      border-top: none;
+      border-left: none;
+      border-bottom: none;
       border-right: 1px solid var(--border);
       height: 56px;
-      display: flex;
-      align-items: center;
       min-width: 72px;
+      background: transparent;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
     }
 
     #amount-input {
@@ -294,6 +302,11 @@
       color: var(--text-dim);
       padding-top: 12px;
       border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
     .result-rate strong { color: var(--text-mid); }
@@ -406,21 +419,7 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── FOOTER ── */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 16px 28px;
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--text-dim);
-      letter-spacing: 0.06em;
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .hidden { display: none !important; }
+.hidden { display: none !important; }
 
     /* ── RESPONSIVE ── */
     @media (max-width: 480px) {
@@ -447,7 +446,7 @@
   <div class="amount-block">
     <div class="field-label">Amount</div>
     <div class="amount-input-wrap">
-      <div class="currency-badge" id="from-badge">USD</div>
+      <select class="currency-badge" id="from-badge"></select>
       <input type="text" inputmode="decimal" id="amount-input" placeholder="1.00" value="1" autocomplete="off" />
     </div>
   </div>
@@ -494,17 +493,11 @@
   <div id="multi-block" class="hidden">
     <div class="multi-label">
       <span>Other Currencies</span>
-      <span id="multi-timestamp"></span>
     </div>
     <div class="multi-grid" id="multi-grid"></div>
   </div>
 
 </main>
-
-<footer>
-  <span>Rates via ExchangeRate-API</span>
-  <span id="last-update">—</span>
-</footer>
 
 <script>
   // ── Constants ──────────────────────────────────────────────────────
@@ -557,12 +550,10 @@
   const resultRate      = document.getElementById('result-rate');
   const multiBlock      = document.getElementById('multi-block');
   const multiGrid       = document.getElementById('multi-grid');
-  const multiTimestamp  = document.getElementById('multi-timestamp');
   const errorBlock      = document.getElementById('error-block');
   const volatilityBlock = document.getElementById('volatility-block');
   const statusDot       = document.getElementById('status-dot');
   const statusText      = document.getElementById('status-text');
-  const lastUpdate      = document.getElementById('last-update');
 
   // ── Populate selects ───────────────────────────────────────────────
   function populateSelects() {
@@ -579,7 +570,14 @@
     });
     fromSelect.value = 'USD';
     toSelect.value = 'THB';
-    fromBadge.textContent = 'USD';
+    // Populate badge select with currency codes only
+    Object.keys(CURRENCY_META).sort().forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c;
+      opt.textContent = c;
+      fromBadge.appendChild(opt);
+    });
+    fromBadge.value = 'USD';
   }
 
   // ── Fetch rates from ExchangeRate-API ─────────────────────────────
@@ -656,9 +654,8 @@
     resultAmount.textContent = formatNum(converted, to);
     resultCurrency.textContent = to;
     resultRate.innerHTML =
-      `1 ${from} = <strong>${rate.toFixed(6)}</strong> ${to} &nbsp;·&nbsp; Last updated: <strong>${formatUpdated(updatedAt)}</strong>`;
+      `<span>1 ${from} = <strong>${rate.toFixed(6)}</strong> ${to}</span><span>Rates from ${formatUpdated(updatedAt)}</span>`;
     resultBlock.classList.remove('hidden');
-    lastUpdate.textContent = `Rates from ${formatUpdated(updatedAt)}`;
   }
 
   function showMultiGrid(amount, from, rates, updatedAt) {
@@ -681,7 +678,6 @@
       multiGrid.appendChild(row);
     });
 
-    multiTimestamp.textContent = formatUpdated(updatedAt);
     multiBlock.classList.remove('hidden');
   }
 
@@ -770,8 +766,15 @@
     }
   });
 
+  fromBadge.addEventListener('change', () => {
+    fromSelect.value = fromBadge.value;
+    resultBlock.classList.add('hidden');
+    multiBlock.classList.add('hidden');
+    volatilityBlock.classList.add('hidden');
+  });
+
   fromSelect.addEventListener('change', () => {
-    fromBadge.textContent = fromSelect.value;
+    fromBadge.value = fromSelect.value;
     resultBlock.classList.add('hidden');
     multiBlock.classList.add('hidden');
     volatilityBlock.classList.add('hidden');
@@ -787,7 +790,7 @@
     const tmp = fromSelect.value;
     fromSelect.value = toSelect.value;
     toSelect.value = tmp;
-    fromBadge.textContent = fromSelect.value;
+    fromBadge.value = fromSelect.value;
     resultBlock.classList.add('hidden');
     multiBlock.classList.add('hidden');
     volatilityBlock.classList.add('hidden');

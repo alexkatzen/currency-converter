@@ -1,8 +1,8 @@
 const CACHE_NAME = 'xchg-v1';
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
+  '/currency-converter/',
+  '/currency-converter/index.html',
+  '/currency-converter/manifest.json',
 ];
 
 // Install: cache static shell

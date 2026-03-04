@@ -2,7 +2,7 @@
   "name": "Giá.exchange — Currency Converter",
   "short_name": "Giá.exchange",
   "description": "Real-time multi-currency converter powered by ECB rates",
-  "start_url": "/",
+  "start_url": "/currency-converter/",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#0a0a0a",
