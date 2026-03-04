@@ -572,7 +572,7 @@
     });
     fromSelect.value = 'USD';
     toSelect.value = 'THB';
-    // Populate badge select (code only by default, flags shown on focus)
+    // Populate badge select with currency codes only
     Object.keys(CURRENCY_META).sort().forEach(c => {
       const opt = document.createElement('option');
       opt.value = c;
@@ -580,17 +580,6 @@
       fromBadge.appendChild(opt);
     });
     fromBadge.value = 'USD';
-
-    fromBadge.addEventListener('focus', () => {
-      Array.from(fromBadge.options).forEach(opt => {
-        opt.textContent = `${CURRENCY_META[opt.value].flag}  ${opt.value}`;
-      });
-    });
-    fromBadge.addEventListener('blur', () => {
-      Array.from(fromBadge.options).forEach(opt => {
-        opt.textContent = opt.value;
-      });
-    });
   }
 
   // ── Fetch rates from ExchangeRate-API ─────────────────────────────
