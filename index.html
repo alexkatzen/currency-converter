@@ -125,12 +125,13 @@
       display: flex;
       align-items: center;
       background: var(--surface);
-      border: 1px solid var(--border);
-      transition: border-color 0.2s;
+      border: 1px solid var(--accent);
+      transition: background 0.2s;
     }
 
     .amount-input-wrap:focus-within {
-      border-color: var(--accent);
+      background: #fff;
+      border-color: #fff;
     }
 
     .amount-input-wrap .currency-badge {
@@ -151,6 +152,12 @@
       cursor: pointer;
       appearance: none;
       -webkit-appearance: none;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .amount-input-wrap:focus-within .currency-badge {
+      color: #000;
+      border-right-color: rgba(0,0,0,0.15);
     }
 
     #amount-input {
@@ -166,9 +173,13 @@
       height: 56px;
       width: 100%;
       min-width: 0;
+      transition: color 0.2s;
     }
 
+    .amount-input-wrap:focus-within #amount-input { color: #000; font-weight: 400; }
+
     #amount-input::placeholder { color: var(--text-dim); font-size: 70%; }
+    .amount-input-wrap:focus-within #amount-input::placeholder { color: rgba(0,0,0,0.4); }
 
     #clear-btn {
       flex-shrink: 0;
@@ -179,6 +190,7 @@
       border: 1px solid var(--border);
       background: transparent;
       color: var(--text-dim);
+      transition: border-color 0.2s, color 0.2s;
       font-size: 11px;
       line-height: 1;
       cursor: pointer;
@@ -188,6 +200,8 @@
       transition: border-color 0.15s, color 0.15s;
     }
     #clear-btn:hover { border-color: var(--text-mid); color: var(--text); }
+    .amount-input-wrap:focus-within #clear-btn { border-color: rgba(0,0,0,0.25); color: rgba(0,0,0,0.4); }
+    .amount-input-wrap:focus-within #clear-btn:hover { border-color: rgba(0,0,0,0.5); color: #000; }
 
     /* ── CURRENCY PAIR ── */
     .currency-grid {
@@ -524,7 +538,7 @@
   </div>
 
   <!-- CONVERT -->
-  <button id="convert-btn">CONVERT</button>
+  <button id="convert-btn" disabled>CONVERT</button>
 
   <!-- ERROR -->
   <div id="error-block" class="error-msg hidden"></div>
@@ -691,7 +705,7 @@
       showError(err.message || 'Failed to fetch rates. Try again.');
       setStatus('error');
     } finally {
-      convertBtn.disabled = false;
+      convertBtn.disabled = true;
       convertBtn.textContent = 'CONVERT';
     }
   }
@@ -802,7 +816,11 @@
     el.setSelectionRange(newPos, newPos);
   }
 
-  amountInput.addEventListener('input', formatAmountInput);
+  amountInput.addEventListener('input', () => {
+    formatAmountInput();
+    const hasValue = amountInput.value.replace(/,/g, '').trim() !== '';
+    convertBtn.disabled = !hasValue;
+  });
 
   amountInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') { convert(); return; }
@@ -822,6 +840,7 @@
   clearBtn.addEventListener('click', () => {
     amountInput.value = '';
     amountInput.focus();
+    convertBtn.disabled = true;
     resultBlock.classList.add('hidden');
     multiBlock.classList.add('hidden');
     volatilityBlock.classList.add('hidden');
@@ -859,6 +878,7 @@
 
   // ── Init ───────────────────────────────────────────────────────────
   populateSelects();
+  convertBtn.disabled = true;
 
   // Register service worker
   if ('serviceWorker' in navigator) {
