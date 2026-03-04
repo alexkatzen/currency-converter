@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <meta name="description" content="Currency Converter — real-time exchange rates" />
+  <title>Giá.exchange — Currency Converter</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --surface2: #1a1a1a;
+      --border: #2a2a2a;
+      --border-active: #555;
+      --text: #e8e8e8;
+      --text-dim: #666;
+      --text-mid: #999;
+      --accent: #d4ff00;
+      --accent-dim: #8aaa00;
+      --danger: #ff4444;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'IBM Plex Sans', sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 28px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 100;
+    }
+
+    .logo {
+      font-family: var(--mono);
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+    }
+
+    .logo span {
+      color: var(--text-dim);
+      font-weight: 300;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-mid);
+      letter-spacing: 0.05em;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-dim);
+      transition: background 0.3s;
+    }
+
+    .status-dot.ready   { background: var(--accent); }
+    .status-dot.loading { background: #e6b800; }
+    .status-dot.error   { background: var(--danger); }
+
+    /* ── MAIN ── */
+    main {
+      flex: 1;
+      max-width: 560px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 36px 20px 60px;
+    }
+
+    /* ── AMOUNT INPUT ── */
+    .amount-block {
+      margin-bottom: 28px;
+    }
+
+    .field-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .amount-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      transition: border-color 0.2s;
+    }
+
+    .amount-input-wrap:focus-within {
+      border-color: var(--accent);
+    }
+
+    .amount-input-wrap .currency-badge {
+      padding: 0 16px;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+      border-right: 1px solid var(--border);
+      height: 56px;
+      display: flex;
+      align-items: center;
+      min-width: 72px;
+    }
+
+    #amount-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 26px;
+      font-weight: 300;
+      padding: 0 18px;
+      height: 56px;
+      width: 100%;
+    }
+
+    #amount-input::placeholder { color: var(--text-dim); }
+
+    /* ── CURRENCY PAIR ── */
+    .currency-grid {
+      display: grid;
+      grid-template-columns: 1fr 48px 1fr;
+      gap: 0;
+      align-items: end;
+      margin-bottom: 28px;
+    }
+
+    .currency-select-wrap {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    select.currency-select {
+      width: 100%;
+      min-width: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 14px 16px;
+      height: 52px;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+      transition: border-color 0.2s;
+    }
+
+    select.currency-select:focus { border-color: var(--accent); }
+
+    .swap-btn {
+      height: 52px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-left: none;
+      border-right: none;
+      color: var(--text-mid);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s, background 0.2s;
+      font-size: 18px;
+    }
+
+    .swap-btn:hover { color: var(--accent); background: #1f1f1f; }
+
+    .swap-btn svg {
+      transition: transform 0.35s cubic-bezier(.68,-.6,.32,1.6);
+    }
+
+    .swap-btn:hover svg { transform: rotate(180deg); }
+
+    /* ── CONVERT BUTTON ── */
+    #convert-btn {
+      width: 100%;
+      height: 52px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      margin-bottom: 32px;
+    }
+
+    #convert-btn:hover { background: #c8f200; }
+    #convert-btn:active { transform: scale(0.99); }
+    #convert-btn:disabled { background: var(--surface2); color: var(--text-dim); cursor: not-allowed; }
+
+    /* ── RESULT ── */
+    .result-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 24px 22px;
+      margin-bottom: 28px;
+      animation: slideIn 0.25s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-meta {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .result-main {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .result-amount {
+      font-family: var(--mono);
+      font-size: 40px;
+      font-weight: 300;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .result-currency {
+      font-family: var(--mono);
+      font-size: 16px;
+      color: var(--text-mid);
+      letter-spacing: 0.08em;
+    }
+
+    .result-rate {
+      margin-top: 12px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .result-rate strong { color: var(--text-mid); }
+
+    /* ── VOLATILITY WARNING ── */
+    .volatility-warn {
+      background: #1a1400;
+      border: 1px solid #4a3800;
+      color: #c8a000;
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 10px 18px;
+      margin-top: -16px;
+      margin-bottom: 28px;
+      letter-spacing: 0.03em;
+      animation: slideIn 0.25s ease;
+    }
+
+    /* ── OTHER CURRENCIES GRID ── */
+    .multi-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .multi-grid {
+      display: grid;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-bottom: 28px;
+    }
+
+    .multi-row {
+      display: flex;
+      align-items: center;
+      background: var(--surface);
+      padding: 14px 18px;
+      gap: 14px;
+      transition: background 0.15s;
+      animation: slideIn 0.2s ease both;
+    }
+
+    .multi-row:hover { background: var(--surface2); }
+
+    .multi-row .flag {
+      font-size: 20px;
+      width: 28px;
+      text-align: center;
+    }
+
+    .multi-row .ccy {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-mid);
+      letter-spacing: 0.08em;
+      width: 40px;
+      flex-shrink: 0;
+    }
+
+    .multi-row .name {
+      font-size: 12px;
+      color: var(--text-dim);
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .multi-row .value {
+      font-family: var(--mono);
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--text);
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* ── ERROR ── */
+    .error-msg {
+      background: #1a0a0a;
+      border: 1px solid #4a1a1a;
+      color: var(--danger);
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 14px 18px;
+      margin-bottom: 24px;
+      letter-spacing: 0.03em;
+    }
+
+    /* ── LOADER ── */
+    .loader {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 16px 28px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .hidden { display: none !important; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 480px) {
+      header { padding: 16px 18px; }
+      main { padding: 24px 16px 48px; }
+      .result-amount { font-size: 32px; }
+      #amount-input { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Giá<span>.exchange</span></div>
+  <div class="status-pill">
+    <div class="status-dot ready" id="status-dot"></div>
+    <span id="status-text">READY</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- AMOUNT -->
+  <div class="amount-block">
+    <div class="field-label">Amount</div>
+    <div class="amount-input-wrap">
+      <div class="currency-badge" id="from-badge">USD</div>
+      <input type="text" inputmode="decimal" id="amount-input" placeholder="1.00" value="1" autocomplete="off" />
+    </div>
+  </div>
+
+  <!-- CURRENCY PAIR -->
+  <div class="currency-grid">
+    <div class="currency-select-wrap">
+      <div class="field-label">From</div>
+      <select id="from-select" class="currency-select"></select>
+    </div>
+
+    <button class="swap-btn" id="swap-btn" title="Swap currencies" aria-label="Swap currencies">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M11 3l3 3-3 3M2 6h12M5 13l-3-3 3-3M14 10H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+
+    <div class="currency-select-wrap">
+      <div class="field-label">To</div>
+      <select id="to-select" class="currency-select"></select>
+    </div>
+  </div>
+
+  <!-- CONVERT -->
+  <button id="convert-btn">CONVERT</button>
+
+  <!-- ERROR -->
+  <div id="error-block" class="error-msg hidden"></div>
+
+  <!-- RESULT -->
+  <div id="result-block" class="result-block hidden">
+    <div class="result-meta" id="result-meta">RESULT</div>
+    <div class="result-main">
+      <div class="result-amount" id="result-amount">—</div>
+      <div class="result-currency" id="result-currency">—</div>
+    </div>
+    <div class="result-rate" id="result-rate"></div>
+  </div>
+
+  <!-- VOLATILITY WARNING -->
+  <div id="volatility-block" class="volatility-warn hidden"></div>
+
+  <!-- OTHER CURRENCIES -->
+  <div id="multi-block" class="hidden">
+    <div class="multi-label">
+      <span>Other Currencies</span>
+      <span id="multi-timestamp"></span>
+    </div>
+    <div class="multi-grid" id="multi-grid"></div>
+  </div>
+
+</main>
+
+<footer>
+  <span>Rates via ExchangeRate-API</span>
+  <span id="last-update">—</span>
+</footer>
+
+<script>
+  // ── Constants ──────────────────────────────────────────────────────
+  const API_KEY             = 'c585883a74c059762b7f11d2';
+  const CACHE_KEY           = 'xchg_rates';
+  const VOLATILE_CURRENCIES = new Set(['ARS','TRY','NGN','PKR','EGP','IRR','VEF','ZWL']);
+
+  // ── Currency metadata ──────────────────────────────────────────────
+  const CURRENCY_META = {
+    USD: { name: 'US Dollar',       flag: '🇺🇸' },
+    THB: { name: 'Thai Baht',       flag: '🇹🇭' },
+    VND: { name: 'Vietnamese Dong', flag: '🇻🇳' },
+  };
+
+  const COMMON_CURRENCIES = ['USD', 'THB', 'VND'];
+
+  // ── LocalStorage cache helpers ─────────────────────────────────────
+  function saveRates(base, entry) {
+    try {
+      const all = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
+      all[base] = entry;
+      localStorage.setItem(CACHE_KEY, JSON.stringify(all));
+    } catch(e) {}
+  }
+
+  function loadRates(base) {
+    try {
+      const all = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
+      const entry = all[base];
+      if (!entry) return null;
+      if (Math.floor(Date.now() / 1000) < entry.nextUpdate) return entry;
+      return null;
+    } catch(e) { return null; }
+  }
+
+  // ── In-memory reference (avoids re-parsing localStorage mid-session) ──
+  let sessionCache = {};
+
+  // ── DOM refs ───────────────────────────────────────────────────────
+  const fromSelect      = document.getElementById('from-select');
+  const toSelect        = document.getElementById('to-select');
+  const amountInput     = document.getElementById('amount-input');
+  const convertBtn      = document.getElementById('convert-btn');
+  const swapBtn         = document.getElementById('swap-btn');
+  const fromBadge       = document.getElementById('from-badge');
+  const resultBlock     = document.getElementById('result-block');
+  const resultAmount    = document.getElementById('result-amount');
+  const resultCurrency  = document.getElementById('result-currency');
+  const resultMeta      = document.getElementById('result-meta');
+  const resultRate      = document.getElementById('result-rate');
+  const multiBlock      = document.getElementById('multi-block');
+  const multiGrid       = document.getElementById('multi-grid');
+  const multiTimestamp  = document.getElementById('multi-timestamp');
+  const errorBlock      = document.getElementById('error-block');
+  const volatilityBlock = document.getElementById('volatility-block');
+  const statusDot       = document.getElementById('status-dot');
+  const statusText      = document.getElementById('status-text');
+  const lastUpdate      = document.getElementById('last-update');
+
+  // ── Populate selects ───────────────────────────────────────────────
+  function populateSelects() {
+    const currencies = Object.keys(CURRENCY_META).sort();
+    [fromSelect, toSelect].forEach(sel => {
+      sel.innerHTML = '';
+      currencies.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        const m = CURRENCY_META[c];
+        opt.textContent = `${m.flag}  ${c} — ${m.name}`;
+        sel.appendChild(opt);
+      });
+    });
+    fromSelect.value = 'USD';
+    toSelect.value = 'THB';
+    fromBadge.textContent = 'USD';
+  }
+
+  // ── Fetch rates from ExchangeRate-API ─────────────────────────────
+  async function fetchRates(base) {
+    if (sessionCache[base]) return sessionCache[base];
+
+    const cached = loadRates(base);
+    if (cached) {
+      sessionCache[base] = cached;
+      return cached;
+    }
+
+    setStatus('loading');
+    const res = await fetch(`https://v6.exchangerate-api.com/v6/${API_KEY}/latest/${base}`);
+    if (!res.ok) throw new Error(`API error: ${res.status}`);
+    const data = await res.json();
+    if (data.result !== 'success') throw new Error(data['error-type'] || 'API error');
+
+    const entry = {
+      rates:      data.conversion_rates,
+      updatedAt:  data.time_last_update_unix,
+      nextUpdate: data.time_next_update_unix,
+    };
+
+    saveRates(base, entry);
+    sessionCache[base] = entry;
+    return entry;
+  }
+
+  // ── Conversion logic ───────────────────────────────────────────────
+  async function convert() {
+    const amount = parseFloat(amountInput.value.replace(/,/g, ''));
+    const from   = fromSelect.value;
+    const to     = toSelect.value;
+
+    if (isNaN(amount) || amount < 0) {
+      showError('Please enter a valid amount.');
+      return;
+    }
+
+    hideError();
+    convertBtn.disabled = true;
+    convertBtn.innerHTML = '<span class="loader"></span>FETCHING';
+
+    try {
+      const { rates, updatedAt } = await fetchRates(from);
+
+      const rate = rates[to];
+      if (!rate) throw new Error(`Rate for ${to} not available.`);
+
+      const converted = amount * rate;
+      showResult(amount, from, converted, to, rate, updatedAt);
+      showMultiGrid(amount, from, rates, updatedAt);
+      checkVolatility(from, to);
+      setStatus('ready');
+    } catch (err) {
+      showError(err.message || 'Failed to fetch rates. Try again.');
+      setStatus('error');
+    } finally {
+      convertBtn.disabled = false;
+      convertBtn.textContent = 'CONVERT';
+    }
+  }
+
+  // ── UI helpers ─────────────────────────────────────────────────────
+  function formatUpdated(unixTs) {
+    return new Date(unixTs * 1000).toLocaleDateString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+    });
+  }
+
+  function showResult(amount, from, converted, to, rate, updatedAt) {
+    resultMeta.textContent = `${formatNum(amount, from)} ${from} =`;
+    resultAmount.textContent = formatNum(converted, to);
+    resultCurrency.textContent = to;
+    resultRate.innerHTML =
+      `1 ${from} = <strong>${rate.toFixed(6)}</strong> ${to} &nbsp;·&nbsp; Last updated: <strong>${formatUpdated(updatedAt)}</strong>`;
+    resultBlock.classList.remove('hidden');
+    lastUpdate.textContent = `Rates from ${formatUpdated(updatedAt)}`;
+  }
+
+  function showMultiGrid(amount, from, rates, updatedAt) {
+    multiGrid.innerHTML = '';
+    const targets = COMMON_CURRENCIES.filter(c => c !== from);
+
+    targets.forEach((ccy, i) => {
+      if (!rates[ccy]) return;
+      const val = amount * rates[ccy];
+      const meta = CURRENCY_META[ccy] || { flag: '🌐', name: ccy };
+      const row = document.createElement('div');
+      row.className = 'multi-row';
+      row.style.animationDelay = `${i * 30}ms`;
+      row.innerHTML = `
+        <span class="flag">${meta.flag}</span>
+        <span class="ccy">${ccy}</span>
+        <span class="name">${meta.name}</span>
+        <span class="value">${formatNum(val, ccy)}</span>
+      `;
+      multiGrid.appendChild(row);
+    });
+
+    multiTimestamp.textContent = formatUpdated(updatedAt);
+    multiBlock.classList.remove('hidden');
+  }
+
+  function checkVolatility(from, to) {
+    const volatile = [from, to].filter(c => VOLATILE_CURRENCIES.has(c));
+    if (volatile.length > 0) {
+      const label = volatile.length > 1 ? 'are high-volatility currencies' : 'is a high-volatility currency';
+      volatilityBlock.textContent =
+        `⚠  ${volatile.join(' & ')} ${label} — rates may shift rapidly. Verify before transacting.`;
+      volatilityBlock.classList.remove('hidden');
+    } else {
+      volatilityBlock.classList.add('hidden');
+    }
+  }
+
+  function formatNum(n, ccy) {
+    const noDecimals = ['JPY','KRW','IDR','ISK','HUF','VND'];
+    return n.toLocaleString('en-US', {
+      minimumFractionDigits: noDecimals.includes(ccy) ? 0 : 2,
+      maximumFractionDigits: noDecimals.includes(ccy) ? 0 : 4,
+    });
+  }
+
+  function showError(msg) {
+    errorBlock.textContent = `⚠  ${msg}`;
+    errorBlock.classList.remove('hidden');
+    resultBlock.classList.add('hidden');
+    multiBlock.classList.add('hidden');
+    volatilityBlock.classList.add('hidden');
+  }
+
+  function hideError() {
+    errorBlock.classList.add('hidden');
+  }
+
+  function setStatus(state) {
+    statusDot.className = 'status-dot';
+    if (state === 'loading') {
+      statusDot.classList.add('loading');
+      statusText.textContent = 'LOADING';
+    } else if (state === 'error') {
+      statusDot.classList.add('error');
+      statusText.textContent = 'ERROR';
+    } else {
+      statusDot.classList.add('ready');
+      statusText.textContent = 'READY';
+    }
+  }
+
+  // ── Events ─────────────────────────────────────────────────────────
+  convertBtn.addEventListener('click', convert);
+
+  function formatAmountInput() {
+    const el = amountInput;
+    const cursorFromEnd = el.value.length - el.selectionEnd;
+
+    // Strip non-numeric characters except decimal point
+    let raw = el.value.replace(/[^\d.]/g, '');
+    // Allow only one decimal point
+    const dot = raw.indexOf('.');
+    if (dot !== -1) raw = raw.slice(0, dot + 1) + raw.slice(dot + 1).replace(/\./g, '');
+
+    const [intPart = '', decPart] = raw.split('.');
+    const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    const formatted = decPart !== undefined ? `${formattedInt}.${decPart}` : formattedInt;
+
+    el.value = formatted;
+    const newPos = Math.max(0, formatted.length - cursorFromEnd);
+    el.setSelectionRange(newPos, newPos);
+  }
+
+  amountInput.addEventListener('input', formatAmountInput);
+
+  amountInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { convert(); return; }
+    // Backspacing over a comma should delete the digit before it
+    if (e.key === 'Backspace' && amountInput.selectionStart === amountInput.selectionEnd) {
+      const pos = amountInput.selectionStart;
+      if (pos > 0 && amountInput.value[pos - 1] === ',') {
+        e.preventDefault();
+        const val = amountInput.value;
+        amountInput.value = val.slice(0, pos - 2) + val.slice(pos - 1);
+        amountInput.setSelectionRange(pos - 2, pos - 2);
+        formatAmountInput();
+      }
+    }
+  });
+
+  fromSelect.addEventListener('change', () => {
+    fromBadge.textContent = fromSelect.value;
+    resultBlock.classList.add('hidden');
+    multiBlock.classList.add('hidden');
+    volatilityBlock.classList.add('hidden');
+  });
+
+  toSelect.addEventListener('change', () => {
+    resultBlock.classList.add('hidden');
+    multiBlock.classList.add('hidden');
+    volatilityBlock.classList.add('hidden');
+  });
+
+  swapBtn.addEventListener('click', () => {
+    const tmp = fromSelect.value;
+    fromSelect.value = toSelect.value;
+    toSelect.value = tmp;
+    fromBadge.textContent = fromSelect.value;
+    resultBlock.classList.add('hidden');
+    multiBlock.classList.add('hidden');
+    volatilityBlock.classList.add('hidden');
+  });
+
+  // ── Init ───────────────────────────────────────────────────────────
+  populateSelects();
+
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+</script>
+</body>
+</html>
