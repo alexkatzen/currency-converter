@@ -423,6 +423,27 @@
 
 .hidden { display: none !important; }
 
+    /* ── LANDSCAPE BLOCK ── */
+    #rotate-notice {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+      font-family: var(--mono);
+      color: var(--text-mid);
+      font-size: 14px;
+      text-align: center;
+    }
+    #rotate-notice span { font-size: 40px; }
+    @media (orientation: landscape) and (max-height: 500px) {
+      #rotate-notice { display: flex; }
+    }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 480px) {
       header { padding: 16px 18px; }
@@ -434,6 +455,7 @@
 </head>
 <body>
 
+<div id="rotate-notice"><span>⟳</span>Please rotate your phone</div>
 <header>
   <div class="logo">Giá<span>.exchange</span></div>
   <div class="status-pill">
