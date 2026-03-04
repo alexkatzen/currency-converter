@@ -142,7 +142,7 @@
       border-bottom: none;
       border-right: 1px solid var(--border);
       height: 56px;
-      min-width: 72px;
+      min-width: 100px;
       background: transparent;
       outline: none;
       cursor: pointer;
@@ -165,7 +165,26 @@
       min-width: 0;
     }
 
-    #amount-input::placeholder { color: var(--text-dim); }
+    #amount-input::placeholder { color: var(--text-dim); font-size: 70%; }
+
+    #clear-btn {
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      margin-right: 14px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      font-size: 11px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    #clear-btn:hover { border-color: var(--text-mid); color: var(--text); }
 
     /* ── CURRENCY PAIR ── */
     .currency-grid {
@@ -446,7 +465,7 @@
       text-align: center;
     }
     #rotate-notice span { font-size: 40px; }
-    @media (orientation: landscape) {
+    @media (orientation: landscape) and (pointer: coarse) {
       #rotate-notice { display: flex; }
     }
 
@@ -477,7 +496,8 @@
     <div class="field-label">Amount</div>
     <div class="amount-input-wrap">
       <select class="currency-badge" id="from-badge"></select>
-      <input type="text" inputmode="decimal" id="amount-input" placeholder="1.00" value="1" autocomplete="off" />
+      <input type="text" inputmode="decimal" id="amount-input" placeholder="Enter amount" autocomplete="off" />
+      <button id="clear-btn" aria-label="Clear amount">&#x2715;</button>
     </div>
   </div>
 
@@ -573,6 +593,7 @@
   const convertBtn      = document.getElementById('convert-btn');
   const swapBtn         = document.getElementById('swap-btn');
   const fromBadge       = document.getElementById('from-badge');
+  const clearBtn        = document.getElementById('clear-btn');
   const resultBlock     = document.getElementById('result-block');
   const resultAmount    = document.getElementById('result-amount');
   const resultCurrency  = document.getElementById('result-currency');
@@ -600,11 +621,11 @@
     });
     fromSelect.value = 'USD';
     toSelect.value = 'THB';
-    // Populate badge select with currency codes only
+    // Populate badge select
     Object.keys(CURRENCY_META).sort().forEach(c => {
       const opt = document.createElement('option');
       opt.value = c;
-      opt.textContent = c;
+      opt.textContent = `${CURRENCY_META[c].flag}  ${c}`;
       fromBadge.appendChild(opt);
     });
     fromBadge.value = 'USD';
@@ -793,6 +814,14 @@
         formatAmountInput();
       }
     }
+  });
+
+  clearBtn.addEventListener('click', () => {
+    amountInput.value = '';
+    amountInput.focus();
+    resultBlock.classList.add('hidden');
+    multiBlock.classList.add('hidden');
+    volatilityBlock.classList.add('hidden');
   });
 
   fromBadge.addEventListener('change', () => {
