@@ -183,29 +183,28 @@
 
     #clear-btn {
       flex-shrink: 0;
-      width: 22px;
-      height: 22px;
+      width: 28px;
+      height: 28px;
       margin-right: 14px;
       visibility: hidden;
       opacity: 0;
       transition: opacity 0.15s, border-color 0.2s, color 0.2s;
       border-radius: 50%;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text-dim);
-      transition: border-color 0.2s, color 0.2s;
-      font-size: 11px;
+      border: none;
+      background: #3a3a3a;
+      color: #fff;
+      font-size: 13px;
       line-height: 1;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: border-color 0.15s, color 0.15s;
+      transition: opacity 0.15s, border-color 0.15s, color 0.15s;
     }
     #clear-btn.visible { visibility: visible; opacity: 1; }
     #clear-btn:hover { border-color: var(--text-mid); color: var(--text); }
-    .amount-input-wrap:focus-within #clear-btn { border-color: rgba(0,0,0,0.25); color: rgba(0,0,0,0.4); }
-    .amount-input-wrap:focus-within #clear-btn:hover { border-color: rgba(0,0,0,0.5); color: #000; }
+    .amount-input-wrap:focus-within #clear-btn { border-color: rgba(0,0,0,0.2); background: rgba(0,0,0,0.15); color: #fff; }
+    .amount-input-wrap:focus-within #clear-btn:hover { border-color: rgba(0,0,0,0.4); background: rgba(0,0,0,0.25); }
 
     /* ── CURRENCY PAIR ── */
     .currency-grid {
@@ -518,7 +517,7 @@
     <div class="amount-input-wrap">
       <select class="currency-badge" id="from-badge"></select>
       <input type="text" inputmode="decimal" id="amount-input" placeholder="Enter amount" autocomplete="off" />
-      <button id="clear-btn" aria-label="Clear amount">&#x2715;</button>
+      <button id="clear-btn" aria-label="Clear amount"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 1.5L10.5 10.5M10.5 1.5L1.5 10.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
     </div>
   </div>
 
