@@ -140,7 +140,7 @@
     .amount-input-wrap .currency-badge {
       padding: 0 16px;
       font-family: var(--mono);
-      font-size: 13px;
+      font-size: 17px;
       font-weight: 500;
       color: var(--accent);
       letter-spacing: 0.05em;
@@ -232,7 +232,7 @@
       border-radius: 6px;
       color: var(--text);
       font-family: var(--mono);
-      font-size: 14px;
+      font-size: 17px;
       font-weight: 500;
       padding: 11px 16px 17px;
       height: 52px;
@@ -642,8 +642,8 @@
         sel.appendChild(opt);
       });
     });
-    fromSelect.value = 'USD';
-    toSelect.value = 'THB';
+    fromSelect.value = 'VND';
+    toSelect.value = 'USD';
     // Populate badge select
     Object.keys(CURRENCY_META).sort().forEach(c => {
       const opt = document.createElement('option');
@@ -651,7 +651,7 @@
       opt.textContent = `${CURRENCY_META[c].flag}  ${c}`;
       fromBadge.appendChild(opt);
     });
-    fromBadge.value = 'USD';
+    fromBadge.value = 'VND';
   }
 
   // ── Fetch rates from ExchangeRate-API ─────────────────────────────
@@ -769,8 +769,8 @@
   function formatNum(n, ccy) {
     const noDecimals = ['JPY','KRW','IDR','ISK','HUF','VND'];
     return n.toLocaleString('en-US', {
-      minimumFractionDigits: noDecimals.includes(ccy) ? 0 : 2,
-      maximumFractionDigits: noDecimals.includes(ccy) ? 0 : 4,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: noDecimals.includes(ccy) ? 0 : 2,
     });
   }
 
@@ -866,12 +866,14 @@
     resultBlock.classList.add('hidden');
     multiBlock.classList.add('hidden');
     volatilityBlock.classList.add('hidden');
+    convertBtn.disabled = amountInput.value.replace(/,/g, '').trim() === '';
   });
 
   toSelect.addEventListener('change', () => {
     resultBlock.classList.add('hidden');
     multiBlock.classList.add('hidden');
     volatilityBlock.classList.add('hidden');
+    convertBtn.disabled = amountInput.value.replace(/,/g, '').trim() === '';
   });
 
   swapBtn.addEventListener('click', () => {
@@ -882,6 +884,7 @@
     resultBlock.classList.add('hidden');
     multiBlock.classList.add('hidden');
     volatilityBlock.classList.add('hidden');
+    convertBtn.disabled = amountInput.value.replace(/,/g, '').trim() === '';
   });
 
   // ── Init ───────────────────────────────────────────────────────────
