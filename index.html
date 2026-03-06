@@ -89,13 +89,13 @@
       max-width: 560px;
       width: 100%;
       margin: 0 auto;
-      padding: 36px 20px 60px;
+      padding: 18px 20px 60px;
       overflow-x: hidden;
     }
 
     /* ── AMOUNT INPUT ── */
     .amount-block {
-      margin-bottom: 28px;
+      margin-bottom: 14px;
     }
 
     .field-label {
@@ -511,20 +511,21 @@
       --text: #111111;
       --text-dim: #888;
       --text-mid: #555;
-      --accent: #5c8a00;
-      --accent-dim: #4a7000;
+      --accent: #0099ff;
+      --accent-dim: #0077cc;
       --danger: #cc2200;
     }
 
-    [data-theme="light"] #convert-btn               { background: #d4ff00; }
-    [data-theme="light"] #convert-btn:hover          { background: #c8f200; }
+    [data-theme="light"] #convert-btn               { background: #66bbff; }
+    [data-theme="light"] #convert-btn:hover          { background: #44aaff; }
     [data-theme="light"] #convert-btn:disabled       { background: var(--surface2); color: var(--text-dim); }
 
-    [data-theme="light"] .amount-input-wrap:focus-within                        { background: #f8ffe8; border-color: var(--accent); }
+    [data-theme="light"] .amount-input-wrap:focus-within                        { background: #e6f4ff; border-color: var(--accent); }
     [data-theme="light"] .amount-input-wrap:focus-within #amount-input          { color: #111; }
     [data-theme="light"] .amount-input-wrap:focus-within .currency-badge        { color: var(--accent); border-right-color: var(--border); }
     [data-theme="light"] .amount-input-wrap:focus-within #amount-input::placeholder { color: rgba(0,0,0,0.35); }
-    [data-theme="light"] .amount-input-wrap:focus-within #clear-btn             { background: rgba(0,0,0,0.1); color: #333; }
+    [data-theme="light"] #clear-btn,
+    [data-theme="light"] .amount-input-wrap:focus-within #clear-btn             { background: rgba(0,153,255,0.15); color: #0077cc; }
 
     [data-theme="light"] .volatility-warn { background: #fffbea; border-color: #d4a000; color: #7a6000; }
     [data-theme="light"] .error-msg       { background: #fff5f5; border-color: #ffbbbb; }
