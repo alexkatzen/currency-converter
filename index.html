@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,13 +9,6 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.ico" sizes="any" />
   <link rel="icon" href="icon-192.png" type="image/png" />
-  <script>
-    (function() {
-      var t = localStorage.getItem('theme');
-      if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', t);
-    })();
-  </script>
   <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
@@ -483,52 +476,28 @@
       #rotate-notice { display: flex; }
     }
 
-    /* ── THEME TOGGLE ── */
-    #theme-toggle {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: var(--text-mid);
-      padding: 4px;
+    /* ── STATUS PILL ── */
+    .status-pill {
       display: flex;
       align-items: center;
-      justify-content: center;
-      transition: color 0.2s;
-    }
-    #theme-toggle:hover { color: var(--accent); }
-    #theme-toggle .icon-sun,
-    #theme-toggle .icon-moon { display: block; }
-    [data-theme="dark"]  #theme-toggle .icon-moon { display: none; }
-    [data-theme="light"] #theme-toggle .icon-sun  { display: none; }
-
-    /* ── LIGHT MODE ── */
-    [data-theme="light"] {
-      --bg: #f2f2f2;
-      --surface: #ffffff;
-      --surface2: #e8e8e8;
-      --border: #d0d0d0;
-      --border-active: #aaa;
-      --text: #111111;
-      --text-dim: #888;
-      --text-mid: #555;
-      --accent: #0099ff;
-      --accent-dim: #0077cc;
-      --danger: #cc2200;
+      gap: 7px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-mid);
+      letter-spacing: 0.05em;
     }
 
-    [data-theme="light"] #convert-btn               { background: #66bbff; }
-    [data-theme="light"] #convert-btn:hover          { background: #44aaff; }
-    [data-theme="light"] #convert-btn:disabled       { background: var(--surface2); color: var(--text-dim); }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--text-dim);
+      transition: background 0.3s;
+    }
 
-    [data-theme="light"] .amount-input-wrap:focus-within                        { background: #e6f4ff; border-color: var(--accent); }
-    [data-theme="light"] .amount-input-wrap:focus-within #amount-input          { color: #111; }
-    [data-theme="light"] .amount-input-wrap:focus-within .currency-badge        { color: var(--accent); border-right-color: var(--border); }
-    [data-theme="light"] .amount-input-wrap:focus-within #amount-input::placeholder { color: rgba(0,0,0,0.35); }
-    [data-theme="light"] #clear-btn,
-    [data-theme="light"] .amount-input-wrap:focus-within #clear-btn             { background: rgba(0,153,255,0.15); color: #0077cc; }
-
-    [data-theme="light"] .volatility-warn { background: #fffbea; border-color: #d4a000; color: #7a6000; }
-    [data-theme="light"] .error-msg       { background: #fff5f5; border-color: #ffbbbb; }
+    .status-dot.ready   { background: var(--accent); }
+    .status-dot.loading { background: #e6b800; }
+    .status-dot.error   { background: var(--danger); }
 
     /* ── RESPONSIVE ── */
     @media (max-width: 480px) {
@@ -544,11 +513,9 @@
 <div id="rotate-notice"><span>⟳</span>Please rotate your phone</div>
 <header>
   <div class="logo">Giá<span>.exchange</span></div>
-  <div style="display:flex;align-items:center;gap:16px;">
-    <button id="theme-toggle" aria-label="Toggle theme">
-      <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-      <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-    </button>
+  <div class="status-pill">
+    <div class="status-dot ready" id="status-dot"></div>
+    <span id="status-text">READY</span>
   </div>
 </header>
 
@@ -666,6 +633,8 @@
   const multiGrid       = document.getElementById('multi-grid');
   const errorBlock      = document.getElementById('error-block');
   const volatilityBlock = document.getElementById('volatility-block');
+  const statusDot       = document.getElementById('status-dot');
+  const statusText      = document.getElementById('status-text');
 
   // ── Populate selects ───────────────────────────────────────────────
   function populateSelects() {
@@ -702,6 +671,7 @@
       return cached;
     }
 
+    setStatus('loading');
     const res = await fetch(`https://v6.exchangerate-api.com/v6/${API_KEY}/latest/${base}`);
     if (!res.ok) throw new Error(`API error: ${res.status}`);
     const data = await res.json();
@@ -743,8 +713,10 @@
       showResult(amount, from, converted, to, rate, updatedAt);
       showMultiGrid(amount, from, rates, updatedAt);
       checkVolatility(from, to);
+      setStatus('ready');
     } catch (err) {
       showError(err.message || 'Failed to fetch rates. Try again.');
+      setStatus('error');
     } finally {
       convertBtn.disabled = true;
       convertBtn.textContent = 'CONVERT';
@@ -821,6 +793,19 @@
     errorBlock.classList.add('hidden');
   }
 
+  function setStatus(state) {
+    statusDot.className = 'status-dot';
+    if (state === 'loading') {
+      statusDot.classList.add('loading');
+      statusText.textContent = 'LOADING';
+    } else if (state === 'error') {
+      statusDot.classList.add('error');
+      statusText.textContent = 'ERROR';
+    } else {
+      statusDot.classList.add('ready');
+      statusText.textContent = 'READY';
+    }
+  }
 
   // ── Events ─────────────────────────────────────────────────────────
   convertBtn.addEventListener('click', convert);
@@ -907,14 +892,6 @@
     multiBlock.classList.add('hidden');
     volatilityBlock.classList.add('hidden');
     convertBtn.disabled = amountInput.value.replace(/,/g, '').trim() === '';
-  });
-
-  // ── Theme toggle ───────────────────────────────────────────────────
-  document.getElementById('theme-toggle').addEventListener('click', () => {
-    const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('theme', next);
-    document.querySelector('meta[name="theme-color"]').content = next === 'light' ? '#f2f2f2' : '#0a0a0a';
   });
 
   // ── Init ───────────────────────────────────────────────────────────
