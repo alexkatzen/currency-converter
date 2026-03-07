@@ -63,16 +63,21 @@
     }
 
     .logo {
-      font-family: var(--mono);
-      font-size: 18px;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 1px;
     }
-
+    .logo img {
+      height: 14px;
+      width: auto;
+      display: block;
+    }
     .logo span {
+      font-family: var(--mono);
+      font-size: 17px;
+      font-weight: 400;
       color: var(--text-dim);
-      font-weight: 300;
+      letter-spacing: 0.02em;
     }
 
 
@@ -512,7 +517,7 @@
 
 <div id="rotate-notice"><span>⟳</span>Please rotate your phone</div>
 <header>
-  <div class="logo">Giá<span>.exchange</span></div>
+  <div class="logo"><img src="Giá.svg" alt="Giá" /><span>.exchange</span></div>
   <div class="status-pill">
     <div class="status-dot ready" id="status-dot"></div>
     <span id="status-text">READY</span>
