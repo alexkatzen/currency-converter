@@ -604,11 +604,14 @@
   // ── Currency metadata ──────────────────────────────────────────────
   const CURRENCY_META = {
     USD: { name: 'US Dollar',       flag: '🇺🇸' },
+    EUR: { name: 'Euro',            flag: '🇪🇺' },
     THB: { name: 'Thai Baht',       flag: '🇹🇭' },
     VND: { name: 'Vietnamese Dong', flag: '🇻🇳' },
+    TWD: { name: 'Taiwan Dollar',   flag: '🇹🇼' },
+    CNY: { name: 'Chinese Yuan',    flag: '🇨🇳' },
   };
 
-  const COMMON_CURRENCIES = ['USD', 'THB', 'VND'];
+  const COMMON_CURRENCIES = ['USD', 'EUR', 'THB', 'VND', 'TWD', 'CNY'];
 
   // ── LocalStorage cache helpers ─────────────────────────────────────
   function saveRates(base, entry) {
