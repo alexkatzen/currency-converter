@@ -1,17 +1,21 @@
-const CACHE_NAME = 'xchg-v4';
+const CACHE_NAME = 'xchg-v5';
 const STATIC_ASSETS = [
   '/currency-converter/',
   '/currency-converter/index.html',
   '/currency-converter/manifest.json',
   '/currency-converter/fonts/space-mono-400.woff2',
   '/currency-converter/fonts/space-mono-700.woff2',
-  '/currency-converter/Giá.svg',
+  '/currency-converter/Gi%C3%A1.svg',
 ];
 
-// Install: cache static shell
+// Install: cache static shell (individual puts so one failure doesn't break all)
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
+    caches.open(CACHE_NAME).then(cache =>
+      Promise.all(STATIC_ASSETS.map(url =>
+        fetch(url).then(res => cache.put(url, res)).catch(() => {})
+      ))
+    )
   );
   self.skipWaiting();
 });

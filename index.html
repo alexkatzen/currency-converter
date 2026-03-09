@@ -625,11 +625,12 @@
   function loadRates(base) {
     try {
       const all = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
-      const entry = all[base];
-      if (!entry) return null;
-      if (Math.floor(Date.now() / 1000) < entry.nextUpdate) return entry;
-      return null;
+      return all[base] || null;
     } catch(e) { return null; }
+  }
+
+  function isStale(entry) {
+    return Math.floor(Date.now() / 1000) >= entry.nextUpdate;
   }
 
   // ── In-memory reference (avoids re-parsing localStorage mid-session) ──
@@ -687,9 +688,16 @@
     const cached = loadRates(base);
     if (cached) {
       sessionCache[base] = cached;
+      // Stale: serve immediately, refresh in background
+      if (isStale(cached)) refreshRates(base);
       return cached;
     }
 
+    // No cache at all — must wait for network
+    return await refreshRates(base);
+  }
+
+  async function refreshRates(base) {
     setStatus('loading');
     const res = await fetch(`https://v6.exchangerate-api.com/v6/${API_KEY}/latest/${base}`);
     if (!res.ok) throw new Error(`API error: ${res.status}`);
@@ -704,6 +712,7 @@
 
     saveRates(base, entry);
     sessionCache[base] = entry;
+    setStatus('ready');
     return entry;
   }
 
