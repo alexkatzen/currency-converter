@@ -598,7 +598,7 @@
 <script>
   // ── Constants ──────────────────────────────────────────────────────
   const API_KEY             = 'c585883a74c059762b7f11d2';
-  const CACHE_KEY           = 'xchg_rates';
+  const CACHE_KEY           = 'xchg_rates_v2';
   const VOLATILE_CURRENCIES = new Set(['ARS','TRY','NGN','PKR','EGP','IRR','VEF','ZWL']);
 
   // ── Currency metadata ──────────────────────────────────────────────
@@ -614,18 +614,15 @@
   const COMMON_CURRENCIES = ['USD', 'EUR', 'THB', 'VND', 'TWD', 'CNY'];
 
   // ── LocalStorage cache helpers ─────────────────────────────────────
-  function saveRates(base, entry) {
+  function saveRates(entry) {
     try {
-      const all = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
-      all[base] = entry;
-      localStorage.setItem(CACHE_KEY, JSON.stringify(all));
+      localStorage.setItem(CACHE_KEY, JSON.stringify(entry));
     } catch(e) {}
   }
 
-  function loadRates(base) {
+  function loadRates() {
     try {
-      const all = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
-      return all[base] || null;
+      return JSON.parse(localStorage.getItem(CACHE_KEY)) || null;
     } catch(e) { return null; }
   }
 
@@ -634,7 +631,7 @@
   }
 
   // ── In-memory reference (avoids re-parsing localStorage mid-session) ──
-  let sessionCache = {};
+  let sessionRates = null;
 
   // ── DOM refs ───────────────────────────────────────────────────────
   const fromSelect      = document.getElementById('from-select');
@@ -681,25 +678,25 @@
     fromBadge.value = 'VND';
   }
 
-  // ── Fetch rates from ExchangeRate-API ─────────────────────────────
-  async function fetchRates(base) {
-    if (sessionCache[base]) return sessionCache[base];
+  // ── Fetch rates from ExchangeRate-API (always USD base) ───────────
+  async function fetchRates() {
+    if (sessionRates) return sessionRates;
 
-    const cached = loadRates(base);
+    const cached = loadRates();
     if (cached) {
-      sessionCache[base] = cached;
+      sessionRates = cached;
       // Stale: serve immediately, refresh in background
-      if (isStale(cached)) refreshRates(base);
+      if (isStale(cached)) refreshRates();
       return cached;
     }
 
     // No cache at all — must wait for network
-    return await refreshRates(base);
+    return await refreshRates();
   }
 
-  async function refreshRates(base) {
+  async function refreshRates() {
     setStatus('loading');
-    const res = await fetch(`https://v6.exchangerate-api.com/v6/${API_KEY}/latest/${base}`);
+    const res = await fetch(`https://v6.exchangerate-api.com/v6/${API_KEY}/latest/USD`);
     if (!res.ok) throw new Error(`API error: ${res.status}`);
     const data = await res.json();
     if (data.result !== 'success') throw new Error(data['error-type'] || 'API error');
@@ -710,8 +707,8 @@
       nextUpdate: data.time_next_update_unix,
     };
 
-    saveRates(base, entry);
-    sessionCache[base] = entry;
+    saveRates(entry);
+    sessionRates = entry;
     setStatus('ready');
     return entry;
   }
@@ -732,11 +729,10 @@
     convertBtn.innerHTML = '<span class="loader"></span>FETCHING';
 
     try {
-      const { rates, updatedAt } = await fetchRates(from);
+      const { rates, updatedAt } = await fetchRates();
 
-      const rate = rates[to];
-      if (!rate) throw new Error(`Rate for ${to} not available.`);
-
+      if (!rates[from] || !rates[to]) throw new Error(`Rate not available.`);
+      const rate = rates[to] / rates[from];
       const converted = amount * rate;
       showResult(amount, from, converted, to, rate, updatedAt);
       showMultiGrid(amount, from, rates, updatedAt);
@@ -772,8 +768,8 @@
     const targets = COMMON_CURRENCIES.filter(c => c !== from);
 
     targets.forEach((ccy, i) => {
-      if (!rates[ccy]) return;
-      const val = amount * rates[ccy];
+      if (!rates[ccy] || !rates[from]) return;
+      const val = amount * (rates[ccy] / rates[from]);
       const meta = CURRENCY_META[ccy] || { flag: '🌐', name: ccy };
       const row = document.createElement('div');
       row.className = 'multi-row';
