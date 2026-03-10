@@ -158,6 +158,15 @@
       border-right-color: rgba(0,0,0,0.15);
     }
 
+    .input-field {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      height: 56px;
+    }
+
     #amount-input {
       flex: 1;
       background: transparent;
@@ -168,16 +177,33 @@
       font-size: clamp(16px, 5vw, 26px);
       font-weight: 300;
       padding: 0 18px;
-      height: 56px;
+      height: 100%;
       width: 100%;
       min-width: 0;
       transition: color 0.2s;
     }
 
+    #amount-input::placeholder { color: transparent; }
+
     .amount-input-wrap:focus-within #amount-input { color: #000; font-weight: 400; }
 
-    #amount-input::placeholder { color: var(--accent); font-size: 13px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; }
-    .amount-input-wrap:focus-within #amount-input::placeholder { color: rgba(0,0,0,0.4); }
+    #amount-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      pointer-events: none;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      transition: color 0.2s;
+    }
+
+    .amount-input-wrap:focus-within #amount-placeholder { color: rgba(0,0,0,0.4); }
 
     #clear-btn {
       flex-shrink: 0;
@@ -542,7 +568,10 @@
     <div class="field-label">Amount</div>
     <div class="amount-input-wrap">
       <select class="currency-badge" id="from-badge"></select>
-      <input type="text" inputmode="decimal" id="amount-input" placeholder="Enter amount" autocomplete="off" />
+      <div class="input-field">
+        <input type="text" inputmode="decimal" id="amount-input" autocomplete="off" />
+        <span id="amount-placeholder">Enter amount</span>
+      </div>
       <button id="clear-btn" aria-label="Clear amount"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 1.5L10.5 10.5M10.5 1.5L1.5 10.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
     </div>
   </div>
@@ -853,11 +882,14 @@
     el.setSelectionRange(newPos, newPos);
   }
 
+  const amountPlaceholder = document.getElementById('amount-placeholder');
+
   amountInput.addEventListener('input', () => {
     formatAmountInput();
     const hasValue = amountInput.value.replace(/,/g, '').trim() !== '';
     convertBtn.disabled = !hasValue;
     clearBtn.classList.toggle('visible', hasValue);
+    amountPlaceholder.style.display = hasValue ? 'none' : 'flex';
   });
 
   amountInput.addEventListener('keydown', e => {
@@ -880,6 +912,7 @@
     amountInput.focus();
     convertBtn.disabled = true;
     clearBtn.classList.remove('visible');
+    amountPlaceholder.style.display = 'flex';
     resultBlock.classList.add('hidden');
     multiBlock.classList.add('hidden');
     volatilityBlock.classList.add('hidden');
