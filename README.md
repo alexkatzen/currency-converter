@@ -43,7 +43,7 @@ The fonts are self-hosted for this reason. Using Google Fonts requires two seque
 The header pill shows the current state of the rate data:
 
 - **READY** (lime dot) — rates loaded, conversions available
-- **LOADING** (yellow dot) — fetching fresh rates from the network
+- **LOADING** (orange dot) — fetching fresh rates from the network
 - **ERROR** (red dot) — network request failed
 
 If you're offline but have a cached rate, the app shows READY and converts using the cached data. The timestamp shown below each conversion result tells you how current the rates are.
