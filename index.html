@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="background:#0a0a0a">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0a0a0a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   <meta name="description" content="Currency Converter — real-time exchange rates" />
   <title>Giá.exchange — Currency Converter</title>
   <link rel="manifest" href="manifest.json" />
@@ -479,6 +481,22 @@
       #rotate-notice { display: flex; }
     }
 
+    /* ── SPLASH SCREEN ── */
+    #splash {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: opacity 0.3s ease;
+    }
+    #splash.hidden { opacity: 0; pointer-events: none; }
+    #splash img { height: 14px; }
+    #splash span { font-family: var(--mono); font-size: 20px; color: var(--text); }
+
     /* ── STATUS PILL ── */
     .status-pill {
       display: flex;
@@ -512,6 +530,10 @@
   </style>
 </head>
 <body>
+
+<div id="splash">
+  <img src="Giá.svg" alt="Giá" />
+</div>
 
 <div id="rotate-notice"><span>⟳</span>Please rotate your phone</div>
 <header>
@@ -666,16 +688,16 @@
     if (cached) {
       sessionRates = cached;
       // Stale: serve immediately, refresh in background
-      if (isStale(cached)) refreshRates();
+      if (isStale(cached)) refreshRates(true);
       return cached;
     }
 
     // No cache at all — must wait for network
-    return await refreshRates();
+    return await refreshRates(false);
   }
 
-  async function refreshRates() {
-    setStatus('loading');
+  async function refreshRates(silent = false) {
+    if (!silent) setStatus('loading');
     const res = await fetch(`https://v6.exchangerate-api.com/v6/${API_KEY}/latest/USD`);
     if (!res.ok) throw new Error(`API error: ${res.status}`);
     const data = await res.json();
@@ -898,6 +920,13 @@
   // ── Init ───────────────────────────────────────────────────────────
   populateSelects();
   convertBtn.disabled = true;
+
+  // Dismiss splash once UI is ready
+  const splash = document.getElementById('splash');
+  requestAnimationFrame(() => {
+    splash.classList.add('hidden');
+    setTimeout(() => splash.remove(), 300);
+  });
 
   // Register service worker
   if ('serviceWorker' in navigator) {
