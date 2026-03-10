@@ -31,22 +31,19 @@
       --surface: #111111;
       --surface2: #1a1a1a;
       --border: #2a2a2a;
-      --border-active: #555;
       --text: #e8e8e8;
       --text-dim: #666;
       --text-mid: #999;
       --accent: #d4ff00;
-      --accent-dim: #8aaa00;
       --danger: #ff4444;
       --mono: 'Space Mono', monospace;
-      --sans: 'Space Mono', monospace;
     }
 
     html, body {
       height: 100%;
       background: var(--bg);
       color: var(--text);
-      font-family: var(--sans);
+      font-family: var(--mono);
       font-size: 14px;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
@@ -187,7 +184,6 @@
       margin-right: 14px;
       visibility: hidden;
       opacity: 0;
-      transition: opacity 0.15s, border-color 0.2s, color 0.2s;
       border-radius: 50%;
       border: none;
       background: #3a3a3a;
@@ -458,7 +454,7 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-.hidden { display: none !important; }
+    .hidden { display: none !important; }
 
     /* ── LANDSCAPE BLOCK ── */
     #rotate-notice {
@@ -725,7 +721,7 @@
       showError(err.message || 'Failed to fetch rates. Try again.');
       setStatus('error');
     } finally {
-      convertBtn.disabled = true;
+      convertBtn.disabled = amountInput.value.replace(/,/g, '').trim() === '';
       convertBtn.textContent = 'CONVERT';
     }
   }
@@ -782,7 +778,7 @@
   }
 
   function formatNum(n, ccy) {
-    const noDecimals = ['JPY','KRW','IDR','ISK','HUF','VND'];
+    const noDecimals = ['VND'];
     return n.toLocaleString('en-US', {
       minimumFractionDigits: 0,
       maximumFractionDigits: noDecimals.includes(ccy) ? 0 : 2,
