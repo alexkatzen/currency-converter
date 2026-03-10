@@ -248,6 +248,8 @@
     select.currency-select:focus { border-color: var(--accent); }
     main:has(#amount-input:focus) #from-select { border-color: var(--accent); }
     main:has(#amount-input:focus) .arrow-indicator { color: var(--accent); }
+    main.has-amount:not(:has(#result-block:not(.hidden))) #from-select { border-color: var(--accent); }
+    main.has-amount:not(:has(#result-block:not(.hidden))) .arrow-indicator { color: var(--accent); }
 
     .arrow-indicator {
       height: 60px;
@@ -662,6 +664,7 @@
   const volatilityBlock = document.getElementById('volatility-block');
   const statusDot       = document.getElementById('status-dot');
   const statusText      = document.getElementById('status-text');
+  const mainEl          = document.querySelector('main');
 
   // ── Populate selects ───────────────────────────────────────────────
   function populateSelects() {
@@ -863,6 +866,7 @@
     const hasValue = amountInput.value.replace(/,/g, '').trim() !== '';
     convertBtn.disabled = !hasValue;
     clearBtn.classList.toggle('visible', hasValue);
+    mainEl.classList.toggle('has-amount', hasValue);
     amountPlaceholder.style.display = hasValue ? 'none' : 'flex';
   });
 
@@ -886,6 +890,7 @@
     amountInput.focus();
     convertBtn.disabled = true;
     clearBtn.classList.remove('visible');
+    mainEl.classList.remove('has-amount');
     amountPlaceholder.style.display = 'flex';
     resultBlock.classList.add('hidden');
     multiBlock.classList.add('hidden');
