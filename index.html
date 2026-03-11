@@ -515,7 +515,6 @@
       header { padding: 16px 18px; }
       main { padding: 24px 16px 48px; }
       .result-amount { font-size: clamp(18px, 7vw, 32px); }
-      #amount-input { font-size: clamp(14px, 4.5vw, 22px); }
     }
   </style>
 </head>
@@ -731,7 +730,7 @@
       showError(err.message || 'Failed to fetch rates. Try again.');
       setStatus('error');
     } finally {
-      convertBtn.disabled = amountInput.value.replace(/,/g, '').trim() === '';
+      convertBtn.disabled = true;
       convertBtn.textContent = 'CONVERT';
     }
   }
