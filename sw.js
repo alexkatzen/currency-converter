@@ -1,10 +1,11 @@
-const CACHE_NAME = 'xchg-v6';
+const CACHE_NAME = 'xchg-v7';
 const STATIC_ASSETS = [
   '/currency-converter/',
   '/currency-converter/index.html',
   '/currency-converter/manifest.json',
   '/currency-converter/fonts/space-mono-400.woff2',
   '/currency-converter/fonts/space-mono-700.woff2',
+  '/currency-converter/fonts/outfit-400.woff2',
   '/currency-converter/Gi%C3%A1.svg',
 ];
 
