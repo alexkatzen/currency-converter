@@ -526,7 +526,7 @@
 
 <div id="rotate-notice"><span>⟳</span>Please rotate your phone</div>
 <header>
-  <div class="logo"><img src="Giá.svg" alt="Giá" /><span>.exchange</span></div>
+  <div class="logo"><img src="logo.svg" alt="Giá" /><span>.exchange</span></div>
   <div class="status-pill">
     <div class="status-dot ready" id="status-dot"></div>
     <span id="status-text">READY</span>
@@ -791,7 +791,7 @@
   }
 
   function formatNum(n, ccy) {
-    const noDecimals = ['VND'];
+    const noDecimals = ['VND', 'JPY', 'KRW', 'IDR'];
     return n.toLocaleString('en-US', {
       minimumFractionDigits: 0,
       maximumFractionDigits: noDecimals.includes(ccy) ? 0 : 2,
