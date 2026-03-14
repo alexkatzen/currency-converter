@@ -1,4 +1,4 @@
-const CACHE_NAME = 'xchg-v9';
+const CACHE_NAME = 'xchg-v10';
 const STATIC_ASSETS = [
   '/currency-converter/',
   '/currency-converter/index.html',

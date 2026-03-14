@@ -67,12 +67,45 @@
       position: relative;
     }
 
+    /* ── FLIP ── */
+    #flip-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      perspective: 2400px;
+      perspective-origin: 50% 0;
+    }
+
+    #flip-front {
+      position: relative;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      transform: rotateY(0deg);
+      transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #flip-back {
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      transform: rotateY(180deg);
+      transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+      background: var(--bg);
+    }
+
+    #flip-wrap.flipped #flip-front { transform: rotateY(-180deg); }
+    #flip-wrap.flipped #flip-back  { transform: rotateY(0deg); }
+
     /* ── HEADER ── */
     header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 20px 28px;
+      padding: 0 28px;
+      height: 66px;
+      flex-shrink: 0;
       border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
@@ -101,6 +134,191 @@
       top: 3px;
     }
 
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    #settings-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-dim);
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      transition: color 0.2s;
+    }
+
+    #settings-btn:hover { color: var(--text); }
+
+    #done-btn {
+      font-family: var(--sans);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: #000;
+      background: var(--accent);
+      border: none;
+      border-radius: 2px;
+      cursor: pointer;
+      text-transform: uppercase;
+      padding: 8px 14px;
+    }
+
+    #done-btn:hover { background: #c8f200; }
+
+    .settings-footer {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: center;
+    }
+
+    #restore-defaults-btn {
+      font-family: var(--sans);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-transform: uppercase;
+      padding: 4px 8px;
+    }
+
+    #restore-defaults-btn:hover { color: var(--text-mid); }
+
+    /* ── SETTINGS CONTENT ── */
+    .settings-content {
+      max-width: 560px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+    }
+
+    .settings-section-label {
+      font-family: var(--sans);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    #currency-search {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      padding: 10px 14px;
+      outline: none;
+      margin-bottom: 16px;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    #currency-search::placeholder { color: var(--text-dim); }
+    #currency-search:focus { border-color: var(--text-mid); }
+
+    #settings-error {
+      font-family: var(--sans);
+      font-size: 12px;
+      color: var(--danger);
+      margin-bottom: 16px;
+    }
+
+    .settings-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .settings-row:last-child { border-bottom: none; }
+
+    .settings-flag {
+      font-size: 22px;
+      width: 28px;
+      flex-shrink: 0;
+      text-align: center;
+    }
+
+    .settings-row-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .settings-row-code {
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      color: var(--text);
+      display: block;
+    }
+
+    .settings-row-name {
+      font-family: var(--sans);
+      font-size: 11px;
+      color: var(--text-dim);
+      display: block;
+      margin-top: 2px;
+    }
+
+    /* ── TOGGLE SWITCH ── */
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 26px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      left: 3px;
+      top: 3px;
+      background: var(--text-dim);
+      border-radius: 50%;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .toggle input:checked + .toggle-slider {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .toggle input:checked + .toggle-slider::before {
+      transform: translateX(18px);
+      background: #000;
+    }
 
     /* ── MAIN ── */
     main {
@@ -141,7 +359,6 @@
       background: #fff;
       border-color: #fff;
     }
-
 
     .input-field {
       flex: 1;
@@ -342,7 +559,7 @@
 
     .result-currency {
       font-family: var(--sans);
-      font-size: 16px;
+      font-size: 12px;
       color: var(--text-mid);
       letter-spacing: 0.08em;
     }
@@ -516,7 +733,7 @@
 
     /* ── RESPONSIVE ── */
     @media (max-width: 480px) {
-      header { padding: 16px 18px; }
+      header { padding: 0 18px; height: 58px; }
       main { padding: 24px 16px 48px; }
       .result-amount { font-size: clamp(18px, 7vw, 32px); }
     }
@@ -525,112 +742,310 @@
 <body>
 
 <div id="rotate-notice"><span>⟳</span>Please rotate your phone</div>
+
 <header>
   <div class="logo"><img src="logo.svg" alt="Giá" /><span>.exchange</span></div>
-  <div class="status-pill">
-    <div class="status-dot ready" id="status-dot"></div>
-    <span id="status-text">READY</span>
+  <div class="header-right" id="header-main">
+    <div class="status-pill">
+      <div class="status-dot ready" id="status-dot"></div>
+      <span id="status-text">READY</span>
+    </div>
+    <button id="settings-btn" aria-label="Settings">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="4" y1="6" x2="20" y2="6"/>
+        <line x1="4" y1="12" x2="20" y2="12"/>
+        <line x1="4" y1="18" x2="20" y2="18"/>
+        <circle cx="9" cy="6" r="2.5" fill="var(--bg)" stroke="currentColor" stroke-width="2"/>
+        <circle cx="16" cy="12" r="2.5" fill="var(--bg)" stroke="currentColor" stroke-width="2"/>
+        <circle cx="10" cy="18" r="2.5" fill="var(--bg)" stroke="currentColor" stroke-width="2"/>
+      </svg>
+    </button>
+  </div>
+  <div class="header-right hidden" id="header-settings">
+    <button id="done-btn">Done</button>
   </div>
 </header>
 
-<main>
+<div id="flip-wrap">
 
-  <!-- AMOUNT -->
-  <div class="amount-block">
-    <div class="field-label">Amount</div>
-    <div class="amount-input-wrap">
-      <div class="input-field">
-        <input type="text" inputmode="decimal" id="amount-input" autocomplete="off" />
-        <span id="amount-placeholder">Enter amount</span>
+    <!-- FRONT: main app -->
+    <div id="flip-front">
+      <main>
+
+        <!-- AMOUNT -->
+        <div class="amount-block">
+          <div class="field-label">Amount</div>
+          <div class="amount-input-wrap">
+            <div class="input-field">
+              <input type="text" inputmode="decimal" id="amount-input" autocomplete="off" />
+              <span id="amount-placeholder">Enter amount</span>
+            </div>
+            <button id="clear-btn" aria-label="Clear amount"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 1.5L10.5 10.5M10.5 1.5L1.5 10.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+          </div>
+        </div>
+
+        <!-- CURRENCY PAIR -->
+        <div class="currency-grid">
+          <div class="currency-select-wrap">
+            <div class="field-label">From</div>
+            <select id="from-select" class="currency-select"></select>
+          </div>
+
+          <button class="arrow-indicator" id="swap-btn" title="Swap currencies" aria-label="Swap currencies">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+
+          <div class="currency-select-wrap">
+            <div class="field-label">To</div>
+            <select id="to-select" class="currency-select"></select>
+          </div>
+        </div>
+
+        <!-- CONVERT -->
+        <button id="convert-btn" disabled>CONVERT</button>
+
+        <!-- ERROR -->
+        <div id="error-block" class="error-msg hidden"></div>
+
+        <!-- RESULT -->
+        <div id="result-block" class="result-block hidden">
+          <div class="result-meta" id="result-meta">RESULT</div>
+          <div class="result-main">
+            <div class="result-amount" id="result-amount">—</div>
+            <div class="result-currency" id="result-currency">—</div>
+          </div>
+          <div class="result-rate" id="result-rate"></div>
+        </div>
+
+        <!-- VOLATILITY WARNING -->
+        <div id="volatility-block" class="volatility-warn hidden"></div>
+
+        <!-- OTHER CURRENCIES -->
+        <div id="multi-block" class="hidden">
+          <div class="multi-label">
+            <span id="multi-label-amount"></span>
+          </div>
+          <div class="multi-grid" id="multi-grid"></div>
+        </div>
+
+      </main>
+    </div><!-- /flip-front -->
+
+    <!-- BACK: settings -->
+    <div id="flip-back">
+      <div class="settings-content">
+        <div class="settings-section-label">Currencies</div>
+        <input type="search" id="currency-search" placeholder="Search…" autocomplete="off" />
+        <div id="settings-error" class="hidden"></div>
+        <div id="currency-toggles"></div>
+        <div class="settings-footer">
+          <button id="restore-defaults-btn">Restore defaults</button>
+        </div>
       </div>
-      <button id="clear-btn" aria-label="Clear amount"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 1.5L10.5 10.5M10.5 1.5L1.5 10.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
-    </div>
-  </div>
+    </div><!-- /flip-back -->
 
-  <!-- CURRENCY PAIR -->
-  <div class="currency-grid">
-    <div class="currency-select-wrap">
-      <div class="field-label">From</div>
-      <select id="from-select" class="currency-select"></select>
-    </div>
-
-    <button class="arrow-indicator" id="swap-btn" title="Swap currencies" aria-label="Swap currencies">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
-
-    <div class="currency-select-wrap">
-      <div class="field-label">To</div>
-      <select id="to-select" class="currency-select"></select>
-    </div>
-  </div>
-
-  <!-- CONVERT -->
-  <button id="convert-btn" disabled>CONVERT</button>
-
-  <!-- ERROR -->
-  <div id="error-block" class="error-msg hidden"></div>
-
-  <!-- RESULT -->
-  <div id="result-block" class="result-block hidden">
-    <div class="result-meta" id="result-meta">RESULT</div>
-    <div class="result-main">
-      <div class="result-amount" id="result-amount">—</div>
-      <div class="result-currency" id="result-currency">—</div>
-    </div>
-    <div class="result-rate" id="result-rate"></div>
-  </div>
-
-  <!-- VOLATILITY WARNING -->
-  <div id="volatility-block" class="volatility-warn hidden"></div>
-
-  <!-- OTHER CURRENCIES -->
-  <div id="multi-block" class="hidden">
-    <div class="multi-label">
-      <span id="multi-label-amount"></span>
-    </div>
-    <div class="multi-grid" id="multi-grid"></div>
-  </div>
-
-</main>
+</div><!-- /flip-wrap -->
 
 <script>
   // ── Constants ──────────────────────────────────────────────────────
   const API_KEY             = 'c585883a74c059762b7f11d2';
   const CACHE_KEY           = 'xchg_rates_v2';
+  const SETTINGS_KEY        = 'xchg_enabled_ccys';
+  const DEFAULT_CURRENCIES  = ['USD', 'EUR', 'THB', 'VND', 'TWD', 'CNY'];
   const VOLATILE_CURRENCIES = new Set(['ARS','TRY','NGN','PKR','EGP','IRR','VEF','ZWL']);
 
   // ── Currency metadata ──────────────────────────────────────────────
   const CURRENCY_META = {
-    USD: { name: 'US Dollar',       flag: '🇺🇸' },
-    EUR: { name: 'Euro',            flag: '🇪🇺' },
-    THB: { name: 'Thai Baht',       flag: '🇹🇭' },
-    VND: { name: 'Vietnamese Dong', flag: '🇻🇳' },
-    TWD: { name: 'Taiwan Dollar',   flag: '🇹🇼' },
-    CNY: { name: 'Chinese Yuan',    flag: '🇨🇳' },
+    AED: { name: 'UAE Dirham',               flag: '🇦🇪' },
+    AFN: { name: 'Afghan Afghani',           flag: '🇦🇫' },
+    ALL: { name: 'Albanian Lek',             flag: '🇦🇱' },
+    AMD: { name: 'Armenian Dram',            flag: '🇦🇲' },
+    ANG: { name: 'Netherlands Antillean Guilder', flag: '🇨🇼' },
+    AOA: { name: 'Angolan Kwanza',           flag: '🇦🇴' },
+    ARS: { name: 'Argentine Peso',           flag: '🇦🇷' },
+    AUD: { name: 'Australian Dollar',        flag: '🇦🇺' },
+    AWG: { name: 'Aruban Florin',            flag: '🇦🇼' },
+    AZN: { name: 'Azerbaijani Manat',        flag: '🇦🇿' },
+    BAM: { name: 'Bosnia-Herzegovina Mark',  flag: '🇧🇦' },
+    BBD: { name: 'Barbadian Dollar',         flag: '🇧🇧' },
+    BDT: { name: 'Bangladeshi Taka',         flag: '🇧🇩' },
+    BGN: { name: 'Bulgarian Lev',            flag: '🇧🇬' },
+    BHD: { name: 'Bahraini Dinar',           flag: '🇧🇭' },
+    BIF: { name: 'Burundian Franc',          flag: '🇧🇮' },
+    BMD: { name: 'Bermudian Dollar',         flag: '🇧🇲' },
+    BND: { name: 'Brunei Dollar',            flag: '🇧🇳' },
+    BOB: { name: 'Bolivian Boliviano',       flag: '🇧🇴' },
+    BRL: { name: 'Brazilian Real',           flag: '🇧🇷' },
+    BSD: { name: 'Bahamian Dollar',          flag: '🇧🇸' },
+    BTN: { name: 'Bhutanese Ngultrum',       flag: '🇧🇹' },
+    BWP: { name: 'Botswanan Pula',           flag: '🇧🇼' },
+    BYN: { name: 'Belarusian Ruble',         flag: '🇧🇾' },
+    BZD: { name: 'Belize Dollar',            flag: '🇧🇿' },
+    CAD: { name: 'Canadian Dollar',          flag: '🇨🇦' },
+    CDF: { name: 'Congolese Franc',          flag: '🇨🇩' },
+    CHF: { name: 'Swiss Franc',              flag: '🇨🇭' },
+    CLP: { name: 'Chilean Peso',             flag: '🇨🇱' },
+    CNY: { name: 'Chinese Yuan',             flag: '🇨🇳' },
+    COP: { name: 'Colombian Peso',           flag: '🇨🇴' },
+    CRC: { name: 'Costa Rican Colón',        flag: '🇨🇷' },
+    CUP: { name: 'Cuban Peso',               flag: '🇨🇺' },
+    CVE: { name: 'Cape Verdean Escudo',      flag: '🇨🇻' },
+    CZK: { name: 'Czech Koruna',             flag: '🇨🇿' },
+    DJF: { name: 'Djiboutian Franc',         flag: '🇩🇯' },
+    DKK: { name: 'Danish Krone',             flag: '🇩🇰' },
+    DOP: { name: 'Dominican Peso',           flag: '🇩🇴' },
+    DZD: { name: 'Algerian Dinar',           flag: '🇩🇿' },
+    EGP: { name: 'Egyptian Pound',           flag: '🇪🇬' },
+    ERN: { name: 'Eritrean Nakfa',           flag: '🇪🇷' },
+    ETB: { name: 'Ethiopian Birr',           flag: '🇪🇹' },
+    EUR: { name: 'Euro',                     flag: '🇪🇺' },
+    FJD: { name: 'Fijian Dollar',            flag: '🇫🇯' },
+    FKP: { name: 'Falkland Islands Pound',   flag: '🇫🇰' },
+    FOK: { name: 'Faroese Króna',            flag: '🇫🇴' },
+    GBP: { name: 'British Pound',            flag: '🇬🇧' },
+    GEL: { name: 'Georgian Lari',            flag: '🇬🇪' },
+    GGP: { name: 'Guernsey Pound',           flag: '🇬🇬' },
+    GHS: { name: 'Ghanaian Cedi',            flag: '🇬🇭' },
+    GIP: { name: 'Gibraltar Pound',          flag: '🇬🇮' },
+    GMD: { name: 'Gambian Dalasi',           flag: '🇬🇲' },
+    GNF: { name: 'Guinean Franc',            flag: '🇬🇳' },
+    GTQ: { name: 'Guatemalan Quetzal',       flag: '🇬🇹' },
+    GYD: { name: 'Guyanese Dollar',          flag: '🇬🇾' },
+    HKD: { name: 'Hong Kong Dollar',         flag: '🇭🇰' },
+    HNL: { name: 'Honduran Lempira',         flag: '🇭🇳' },
+    HRK: { name: 'Croatian Kuna',            flag: '🇭🇷' },
+    HTG: { name: 'Haitian Gourde',           flag: '🇭🇹' },
+    HUF: { name: 'Hungarian Forint',         flag: '🇭🇺' },
+    IDR: { name: 'Indonesian Rupiah',        flag: '🇮🇩' },
+    ILS: { name: 'Israeli New Shekel',       flag: '🇮🇱' },
+    IMP: { name: 'Isle of Man Pound',        flag: '🇮🇲' },
+    INR: { name: 'Indian Rupee',             flag: '🇮🇳' },
+    IQD: { name: 'Iraqi Dinar',              flag: '🇮🇶' },
+    IRR: { name: 'Iranian Rial',             flag: '🇮🇷' },
+    ISK: { name: 'Icelandic Króna',          flag: '🇮🇸' },
+    JEP: { name: 'Jersey Pound',             flag: '🇯🇪' },
+    JMD: { name: 'Jamaican Dollar',          flag: '🇯🇲' },
+    JOD: { name: 'Jordanian Dinar',          flag: '🇯🇴' },
+    JPY: { name: 'Japanese Yen',             flag: '🇯🇵' },
+    KES: { name: 'Kenyan Shilling',          flag: '🇰🇪' },
+    KGS: { name: 'Kyrgyzstani Som',          flag: '🇰🇬' },
+    KHR: { name: 'Cambodian Riel',           flag: '🇰🇭' },
+    KID: { name: 'Kiribati Dollar',          flag: '🇰🇮' },
+    KMF: { name: 'Comorian Franc',           flag: '🇰🇲' },
+    KRW: { name: 'South Korean Won',         flag: '🇰🇷' },
+    KWD: { name: 'Kuwaiti Dinar',            flag: '🇰🇼' },
+    KYD: { name: 'Cayman Islands Dollar',    flag: '🇰🇾' },
+    KZT: { name: 'Kazakhstani Tenge',        flag: '🇰🇿' },
+    LAK: { name: 'Lao Kip',                  flag: '🇱🇦' },
+    LBP: { name: 'Lebanese Pound',           flag: '🇱🇧' },
+    LKR: { name: 'Sri Lankan Rupee',         flag: '🇱🇰' },
+    LRD: { name: 'Liberian Dollar',          flag: '🇱🇷' },
+    LSL: { name: 'Lesotho Loti',             flag: '🇱🇸' },
+    LYD: { name: 'Libyan Dinar',             flag: '🇱🇾' },
+    MAD: { name: 'Moroccan Dirham',          flag: '🇲🇦' },
+    MDL: { name: 'Moldovan Leu',             flag: '🇲🇩' },
+    MGA: { name: 'Malagasy Ariary',          flag: '🇲🇬' },
+    MKD: { name: 'Macedonian Denar',         flag: '🇲🇰' },
+    MMK: { name: 'Myanmar Kyat',             flag: '🇲🇲' },
+    MNT: { name: 'Mongolian Tögrög',         flag: '🇲🇳' },
+    MOP: { name: 'Macanese Pataca',          flag: '🇲🇴' },
+    MRU: { name: 'Mauritanian Ouguiya',      flag: '🇲🇷' },
+    MUR: { name: 'Mauritian Rupee',          flag: '🇲🇺' },
+    MVR: { name: 'Maldivian Rufiyaa',        flag: '🇲🇻' },
+    MWK: { name: 'Malawian Kwacha',          flag: '🇲🇼' },
+    MXN: { name: 'Mexican Peso',             flag: '🇲🇽' },
+    MYR: { name: 'Malaysian Ringgit',        flag: '🇲🇾' },
+    MZN: { name: 'Mozambican Metical',       flag: '🇲🇿' },
+    NAD: { name: 'Namibian Dollar',          flag: '🇳🇦' },
+    NGN: { name: 'Nigerian Naira',           flag: '🇳🇬' },
+    NIO: { name: 'Nicaraguan Córdoba',       flag: '🇳🇮' },
+    NOK: { name: 'Norwegian Krone',          flag: '🇳🇴' },
+    NPR: { name: 'Nepalese Rupee',           flag: '🇳🇵' },
+    NZD: { name: 'New Zealand Dollar',       flag: '🇳🇿' },
+    OMR: { name: 'Omani Rial',               flag: '🇴🇲' },
+    PAB: { name: 'Panamanian Balboa',        flag: '🇵🇦' },
+    PEN: { name: 'Peruvian Sol',             flag: '🇵🇪' },
+    PGK: { name: 'Papua New Guinean Kina',   flag: '🇵🇬' },
+    PHP: { name: 'Philippine Peso',          flag: '🇵🇭' },
+    PKR: { name: 'Pakistani Rupee',          flag: '🇵🇰' },
+    PLN: { name: 'Polish Złoty',             flag: '🇵🇱' },
+    PYG: { name: 'Paraguayan Guaraní',       flag: '🇵🇾' },
+    QAR: { name: 'Qatari Riyal',             flag: '🇶🇦' },
+    RON: { name: 'Romanian Leu',             flag: '🇷🇴' },
+    RSD: { name: 'Serbian Dinar',            flag: '🇷🇸' },
+    RUB: { name: 'Russian Ruble',            flag: '🇷🇺' },
+    RWF: { name: 'Rwandan Franc',            flag: '🇷🇼' },
+    SAR: { name: 'Saudi Riyal',              flag: '🇸🇦' },
+    SBD: { name: 'Solomon Islands Dollar',   flag: '🇸🇧' },
+    SCR: { name: 'Seychellois Rupee',        flag: '🇸🇨' },
+    SDG: { name: 'Sudanese Pound',           flag: '🇸🇩' },
+    SEK: { name: 'Swedish Krona',            flag: '🇸🇪' },
+    SGD: { name: 'Singapore Dollar',         flag: '🇸🇬' },
+    SHP: { name: 'Saint Helena Pound',       flag: '🇸🇭' },
+    SLE: { name: 'Sierra Leonean Leone',     flag: '🇸🇱' },
+    SOS: { name: 'Somali Shilling',          flag: '🇸🇴' },
+    SRD: { name: 'Surinamese Dollar',        flag: '🇸🇷' },
+    SSP: { name: 'South Sudanese Pound',     flag: '🇸🇸' },
+    STN: { name: 'São Tomé & Príncipe Dobra',flag: '🇸🇹' },
+    SYP: { name: 'Syrian Pound',             flag: '🇸🇾' },
+    SZL: { name: 'Swazi Lilangeni',          flag: '🇸🇿' },
+    THB: { name: 'Thai Baht',                flag: '🇹🇭' },
+    TJS: { name: 'Tajikistani Somoni',       flag: '🇹🇯' },
+    TMT: { name: 'Turkmenistani Manat',      flag: '🇹🇲' },
+    TND: { name: 'Tunisian Dinar',           flag: '🇹🇳' },
+    TOP: { name: 'Tongan Paʻanga',           flag: '🇹🇴' },
+    TRY: { name: 'Turkish Lira',             flag: '🇹🇷' },
+    TTD: { name: 'Trinidad & Tobago Dollar', flag: '🇹🇹' },
+    TVD: { name: 'Tuvaluan Dollar',          flag: '🇹🇻' },
+    TWD: { name: 'Taiwan Dollar',            flag: '🇹🇼' },
+    TZS: { name: 'Tanzanian Shilling',       flag: '🇹🇿' },
+    UAH: { name: 'Ukrainian Hryvnia',        flag: '🇺🇦' },
+    UGX: { name: 'Ugandan Shilling',         flag: '🇺🇬' },
+    USD: { name: 'US Dollar',                flag: '🇺🇸' },
+    UYU: { name: 'Uruguayan Peso',           flag: '🇺🇾' },
+    UZS: { name: 'Uzbekistani Som',          flag: '🇺🇿' },
+    VES: { name: 'Venezuelan Bolívar',       flag: '🇻🇪' },
+    VND: { name: 'Vietnamese Dong',          flag: '🇻🇳' },
+    VUV: { name: 'Vanuatu Vatu',             flag: '🇻🇺' },
+    WST: { name: 'Samoan Tālā',              flag: '🇼🇸' },
+    XAF: { name: 'Central African Franc',    flag: '🌍' },
+    XCD: { name: 'East Caribbean Dollar',    flag: '🌎' },
+    XOF: { name: 'West African Franc',       flag: '🌍' },
+    XPF: { name: 'CFP Franc',                flag: '🌊' },
+    YER: { name: 'Yemeni Rial',              flag: '🇾🇪' },
+    ZAR: { name: 'South African Rand',       flag: '🇿🇦' },
+    ZMW: { name: 'Zambian Kwacha',           flag: '🇿🇲' },
+    ZWL: { name: 'Zimbabwean Dollar',        flag: '🇿🇼' },
   };
 
-  const COMMON_CURRENCIES = ['USD', 'EUR', 'THB', 'VND', 'TWD', 'CNY'];
-
-  // ── LocalStorage cache helpers ─────────────────────────────────────
+  // ── LocalStorage helpers ───────────────────────────────────────────
   function saveRates(entry) {
-    try {
-      localStorage.setItem(CACHE_KEY, JSON.stringify(entry));
-    } catch(e) {}
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(entry)); } catch(e) {}
   }
 
   function loadRates() {
-    try {
-      return JSON.parse(localStorage.getItem(CACHE_KEY)) || null;
-    } catch(e) { return null; }
+    try { return JSON.parse(localStorage.getItem(CACHE_KEY)) || null; } catch(e) { return null; }
   }
 
   function isStale(entry) {
     return Math.floor(Date.now() / 1000) >= entry.nextUpdate;
   }
 
-  // ── In-memory reference (avoids re-parsing localStorage mid-session) ──
+  function getEnabledCurrencies() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+      if (Array.isArray(saved) && saved.length >= 2) return saved;
+    } catch(e) {}
+    return DEFAULT_CURRENCIES;
+  }
+
+  function saveEnabledCurrencies(list) {
+    try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(list)); } catch(e) {}
+  }
+
+  // ── In-memory reference ────────────────────────────────────────────
   let sessionRates = null;
 
   // ── DOM refs ───────────────────────────────────────────────────────
@@ -652,13 +1067,21 @@
   const statusDot       = document.getElementById('status-dot');
   const statusText      = document.getElementById('status-text');
   const mainEl          = document.querySelector('main');
+  const flipWrap        = document.getElementById('flip-wrap');
+  const headerMain      = document.getElementById('header-main');
+  const headerSettings  = document.getElementById('header-settings');
+  const settingsBtn     = document.getElementById('settings-btn');
+  const doneBtn         = document.getElementById('done-btn');
+  const settingsError   = document.getElementById('settings-error');
 
   // ── Populate selects ───────────────────────────────────────────────
   function populateSelects() {
-    const currencies = Object.keys(CURRENCY_META).sort();
+    const enabled = getEnabledCurrencies().filter(c => CURRENCY_META[c]).sort();
+    const prevFrom = fromSelect.value;
+    const prevTo   = toSelect.value;
     [fromSelect, toSelect].forEach(sel => {
       sel.innerHTML = '';
-      currencies.forEach(c => {
+      enabled.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c;
         const m = CURRENCY_META[c];
@@ -666,23 +1089,92 @@
         sel.appendChild(opt);
       });
     });
-    fromSelect.value = 'VND';
-    toSelect.value = 'USD';
+    fromSelect.value = enabled.includes(prevFrom) ? prevFrom
+                     : enabled.includes('VND')    ? 'VND'
+                     : enabled[0];
+    toSelect.value   = enabled.includes(prevTo)   ? prevTo
+                     : enabled.includes('USD')     ? 'USD'
+                     : enabled.find(c => c !== fromSelect.value) || enabled[0];
+    if (fromSelect.value === toSelect.value && enabled.length > 1) {
+      toSelect.value = enabled.find(c => c !== fromSelect.value) || enabled[0];
+    }
   }
 
-  // ── Fetch rates from ExchangeRate-API (always USD base) ───────────
+  // ── Settings panel ─────────────────────────────────────────────────
+  function renderCurrencyToggles(filter = '') {
+    const enabled = new Set(getEnabledCurrencies());
+    const container = document.getElementById('currency-toggles');
+    const q = filter.toLowerCase();
+    container.innerHTML = '';
+    Object.entries(CURRENCY_META).forEach(([code, meta]) => {
+      if (q && !code.toLowerCase().includes(q) && !meta.name.toLowerCase().includes(q)) return;
+      const row = document.createElement('div');
+      row.className = 'settings-row';
+      row.innerHTML = `
+        <span class="settings-flag">${meta.flag}</span>
+        <div class="settings-row-info">
+          <span class="settings-row-code">${code}</span>
+          <span class="settings-row-name">${meta.name}</span>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" value="${code}" ${enabled.has(code) ? 'checked' : ''}>
+          <span class="toggle-slider"></span>
+        </label>
+      `;
+      container.appendChild(row);
+    });
+  }
+
+  const currencySearch = document.getElementById('currency-search');
+  currencySearch.addEventListener('input', () => renderCurrencyToggles(currencySearch.value));
+
+  document.getElementById('restore-defaults-btn').addEventListener('click', () => {
+    saveEnabledCurrencies(DEFAULT_CURRENCIES);
+    currencySearch.value = '';
+    renderCurrencyToggles();
+  });
+
+  settingsBtn.addEventListener('click', () => {
+    currencySearch.value = '';
+    renderCurrencyToggles();
+    settingsError.classList.add('hidden');
+    headerMain.classList.add('hidden');
+    headerSettings.classList.remove('hidden');
+    flipWrap.classList.add('flipped');
+  });
+
+  doneBtn.addEventListener('click', () => {
+    const visibleInputs = [...document.querySelectorAll('#currency-toggles input')];
+    const visibleCodes  = new Set(visibleInputs.map(el => el.value));
+    const visibleChecked = new Set(visibleInputs.filter(el => el.checked).map(el => el.value));
+    // Preserve enabled currencies that are filtered out of the current view
+    const preserved = getEnabledCurrencies().filter(c => !visibleCodes.has(c));
+    const checked = [...preserved, ...visibleChecked];
+    if (checked.length < 2) {
+      settingsError.textContent = 'Please enable at least 2 currencies.';
+      settingsError.classList.remove('hidden');
+      return;
+    }
+    settingsError.classList.add('hidden');
+    saveEnabledCurrencies(checked);
+    headerSettings.classList.add('hidden');
+    headerMain.classList.remove('hidden');
+    flipWrap.classList.remove('flipped');
+    populateSelects();
+    resultBlock.classList.add('hidden');
+    multiBlock.classList.add('hidden');
+    volatilityBlock.classList.add('hidden');
+  });
+
+  // ── Fetch rates ────────────────────────────────────────────────────
   async function fetchRates() {
     if (sessionRates) return sessionRates;
-
     const cached = loadRates();
     if (cached) {
       sessionRates = cached;
-      // Stale: serve immediately, refresh in background
       if (isStale(cached)) refreshRates(true);
       return cached;
     }
-
-    // No cache at all — must wait for network
     return await refreshRates(false);
   }
 
@@ -749,7 +1241,7 @@
   function showResult(amount, from, converted, to, rate, updatedAt) {
     resultMeta.textContent = `${formatNum(amount, from)} ${from} =`;
     resultAmount.textContent = formatNum(converted, to);
-    resultCurrency.textContent = to;
+    resultCurrency.textContent = (CURRENCY_META[to] || {}).name || to;
     resultRate.innerHTML =
       `<span>1 ${from} = <strong>${rate.toFixed(6)}</strong> ${to}</span><span>Rates from ${formatUpdated(updatedAt)}</span>`;
     resultBlock.classList.remove('hidden');
@@ -758,7 +1250,8 @@
   function showMultiGrid(amount, from, rates, updatedAt) {
     multiGrid.innerHTML = '';
     document.getElementById('multi-label-amount').textContent = `${formatNum(amount, from)} ${from} =`;
-    const targets = COMMON_CURRENCIES.filter(c => c !== from);
+    const enabled = getEnabledCurrencies();
+    const targets = enabled.filter(c => c !== from && CURRENCY_META[c]);
 
     targets.forEach((ccy, i) => {
       if (!rates[ccy] || !rates[from]) return;
@@ -830,17 +1323,12 @@
   function formatAmountInput() {
     const el = amountInput;
     const cursorFromEnd = el.value.length - el.selectionEnd;
-
-    // Strip non-numeric characters except decimal point
     let raw = el.value.replace(/[^\d.]/g, '');
-    // Allow only one decimal point
     const dot = raw.indexOf('.');
     if (dot !== -1) raw = raw.slice(0, dot + 1) + raw.slice(dot + 1).replace(/\./g, '');
-
     const [intPart = '', decPart] = raw.split('.');
     const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     const formatted = decPart !== undefined ? `${formattedInt}.${decPart}` : formattedInt;
-
     el.value = formatted;
     const newPos = Math.max(0, formatted.length - cursorFromEnd);
     el.setSelectionRange(newPos, newPos);
@@ -859,7 +1347,6 @@
 
   amountInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') { convert(); return; }
-    // Backspacing over a comma should delete the digit before it
     if (e.key === 'Backspace' && amountInput.selectionStart === amountInput.selectionEnd) {
       const pos = amountInput.selectionStart;
       if (pos > 0 && amountInput.value[pos - 1] === ',') {
@@ -913,7 +1400,6 @@
   populateSelects();
   convertBtn.disabled = true;
 
-  // Register service worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
