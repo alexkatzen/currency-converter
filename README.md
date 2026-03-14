@@ -30,9 +30,10 @@ The app is registered as a [Progressive Web App](https://developer.mozilla.org/e
 
 - `index.html`
 - `manifest.json`
-- `Giá.svg` (logo)
+- `logo.svg` (wordmark)
 - `fonts/space-mono-400.woff2`
 - `fonts/space-mono-700.woff2`
+- `fonts/outfit-400.woff2`
 
 Every subsequent launch loads entirely from cache — no network required for the app shell. This eliminates the 3–7 second blank screen that would otherwise occur on a slow connection while the browser waits for fonts and HTML to download.
 
@@ -52,6 +53,16 @@ If you're offline but have a cached rate, the app shows READY and converts using
 
 A small set of currencies known for high volatility (ARS, TRY, NGN, etc.) trigger a warning banner when selected, reminding you to verify before transacting.
 
+### Settings
+
+Tap the sliders icon in the header to open the settings panel. From there you can:
+
+- **Enable or disable currencies** — choose which currencies appear in the converter dropdowns. 160+ currencies are available, sourced from ExchangeRate-API.
+- **Search** — filter the currency list by code or name to find what you need quickly.
+- **Restore defaults** — reset to the default set (USD, EUR, THB, VND, TWD, CNY).
+
+Enabled currencies are saved to `localStorage` and persist across sessions. The settings panel opens with a card-flip animation.
+
 ---
 
 ## File structure
@@ -60,41 +71,29 @@ A small set of currencies known for high volatility (ARS, TRY, NGN, etc.) trigge
 index.html          — the entire app
 sw.js               — service worker (caching + offline)
 manifest.json       — PWA manifest (name, icons, display mode)
-Giá.svg             — wordmark used in the header
+logo.svg            — wordmark used in the header
 icon-192.png        — PWA home screen icon
 icon-512.png        — PWA splash / store icon
 favicon.ico         — browser tab icon
 fonts/
   space-mono-400.woff2
   space-mono-700.woff2
+  outfit-400.woff2
 ```
 
 ---
 
 ## Supported currencies
 
-| Code | Currency         |
-|------|-----------------|
-| CNY  | Chinese Yuan     |
-| EUR  | Euro             |
-| THB  | Thai Baht        |
-| TWD  | Taiwan Dollar    |
-| USD  | US Dollar        |
-| VND  | Vietnamese Dong  |
+160+ currencies are available, including all major and many minor currencies supported by ExchangeRate-API. The default set shown on first launch is:
 
----
+| Code | Currency        |
+|------|----------------|
+| USD  | US Dollar       |
+| EUR  | Euro            |
+| THB  | Thai Baht       |
+| VND  | Vietnamese Dong |
+| TWD  | Taiwan Dollar   |
+| CNY  | Chinese Yuan    |
 
-## Adding a currency
-
-In `index.html`, add an entry to `CURRENCY_META` and include the code in `COMMON_CURRENCIES`:
-
-```js
-const CURRENCY_META = {
-  // existing entries...
-  JPY: { name: 'Japanese Yen', flag: '🇯🇵' },
-};
-
-const COMMON_CURRENCIES = ['USD', 'EUR', 'THB', 'VND', 'TWD', 'CNY', 'JPY'];
-```
-
-Any currency supported by ExchangeRate-API will work. No other changes needed.
+Additional currencies can be enabled at any time from the settings panel.
