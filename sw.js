@@ -1,4 +1,4 @@
-const CACHE_NAME = 'xchg-v10';
+const CACHE_NAME = 'xchg-v11';
 const STATIC_ASSETS = [
   '/currency-converter/',
   '/currency-converter/index.html',
@@ -7,6 +7,15 @@ const STATIC_ASSETS = [
   '/currency-converter/fonts/space-mono-700.woff2',
   '/currency-converter/fonts/outfit-400.woff2',
   '/currency-converter/logo.svg',
+  '/currency-converter/splash/splash-750x1334.png',
+  '/currency-converter/splash/splash-1125x2436.png',
+  '/currency-converter/splash/splash-828x1792.png',
+  '/currency-converter/splash/splash-1242x2688.png',
+  '/currency-converter/splash/splash-1170x2532.png',
+  '/currency-converter/splash/splash-1284x2778.png',
+  '/currency-converter/splash/splash-1179x2556.png',
+  '/currency-converter/splash/splash-1290x2796.png',
+  '/currency-converter/splash/splash-1320x2868.png',
 ];
 
 // Install: cache static shell (individual puts so one failure doesn't break all)
