@@ -60,7 +60,6 @@
     }
 
     html, body {
-      height: 100%;
       background: var(--bg);
       color: var(--text);
       font-family: var(--mono);
@@ -81,15 +80,13 @@
     #flip-wrap {
       flex: 1;
       position: relative;
-      overflow: hidden;
+      overflow: clip;
       perspective: 2400px;
       perspective-origin: 50% 0;
     }
 
     #flip-front {
-      position: absolute;
-      inset: 0;
-      overflow-y: auto;
+      position: relative;
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
       transform: rotateY(0deg);
