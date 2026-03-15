@@ -1294,7 +1294,7 @@
   }
 
   function formatNum(n, ccy) {
-    const noDecimals = ['VND', 'JPY', 'KRW', 'IDR'];
+    const noDecimals = ['VND', 'JPY', 'KRW', 'IDR', 'THB'];
     return n.toLocaleString('en-US', {
       minimumFractionDigits: 0,
       maximumFractionDigits: noDecimals.includes(ccy) ? 0 : 2,
