@@ -1307,6 +1307,10 @@
   // ── Events ─────────────────────────────────────────────────────────
   convertBtn.addEventListener('click', convert);
 
+  document.addEventListener('touchstart', e => {
+    if (!e.target.closest('#amount-zone')) amountInput.blur();
+  }, { passive: true });
+
   function formatAmountInput() {
     const el = amountInput;
     const cursorFromEnd = el.value.length - el.selectionEnd;
