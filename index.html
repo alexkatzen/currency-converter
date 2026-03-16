@@ -30,18 +30,11 @@
       src: url('fonts/outfit-400.woff2') format('woff2');
     }
     @font-face {
-      font-family: 'Space Mono';
+      font-family: 'Space Grotesk';
       font-style: normal;
-      font-weight: 400;
+      font-weight: 300 700;
       font-display: swap;
-      src: url('fonts/space-mono-400.woff2') format('woff2');
-    }
-    @font-face {
-      font-family: 'Space Mono';
-      font-style: normal;
-      font-weight: 700;
-      font-display: swap;
-      src: url('fonts/space-mono-700.woff2') format('woff2');
+      src: url('fonts/space-grotesk.woff2') format('woff2');
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -55,7 +48,7 @@
       --text-mid: #999;
       --accent: #d4ff00;
       --danger: #ff4444;
-      --mono: 'Space Mono', monospace;
+      --mono: 'Space Grotesk', sans-serif;
       --sans: 'Outfit', sans-serif;
     }
 
@@ -116,7 +109,6 @@
       padding: 0 28px;
       height: 66px;
       flex-shrink: 0;
-      border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
       background: var(--bg);
@@ -136,7 +128,7 @@
     .logo span {
       font-family: var(--sans);
       font-size: 13px;
-      font-weight: 400;
+      font-weight: 300;
       color: var(--text-dim);
       letter-spacing: 0.08em;
       margin-left: 5px;
@@ -336,38 +328,42 @@
       max-width: 560px;
       width: 100%;
       margin: 0 auto;
-      padding: 18px 20px 60px;
+      padding: 24px 20px 60px;
       overflow-x: hidden;
     }
 
-    /* ── AMOUNT INPUT ── */
-    .amount-block {
-      margin-bottom: 14px;
+    /* ── AMOUNT ZONE ── */
+    #amount-zone {
+      background: var(--surface);
+      transition: background 0.35s;
+      padding: 4px 20px 6px;
+    }
+
+    #amount-zone:focus-within {
+      background: #fff;
     }
 
     .field-label {
       font-family: var(--sans);
       font-size: 10px;
       letter-spacing: 0.15em;
-      color: var(--text-dim);
+      color: var(--accent);
       text-transform: uppercase;
-      margin-bottom: 10px;
+    }
+
+    .currency-label { margin-bottom: 10px; }
+
+    #amount-zone:focus-within .field-label {
+      color: rgba(0, 0, 0, 0.4);
     }
 
     .amount-input-wrap {
       position: relative;
       display: flex;
       align-items: center;
-      background: var(--surface);
-      border: 3px solid var(--accent);
-      border-radius: 6px;
+      background: transparent;
+      border: none;
       overflow: hidden;
-      transition: background 0.2s;
-    }
-
-    .amount-input-wrap:focus-within {
-      background: #fff;
-      border-color: #fff;
     }
 
     .input-field {
@@ -376,7 +372,7 @@
       display: flex;
       align-items: center;
       min-width: 0;
-      height: 56px;
+      height: 45px;
     }
 
     #amount-input {
@@ -386,9 +382,9 @@
       outline: none;
       color: var(--text);
       font-family: var(--mono);
-      font-size: clamp(16px, 5vw, 26px);
+      font-size: clamp(24px, 8vw, 32px);
       font-weight: 300;
-      padding: 0 18px;
+      padding: 0;
       height: 100%;
       width: 100%;
       min-width: 0;
@@ -397,36 +393,19 @@
 
     #amount-input::placeholder { color: transparent; }
 
-    .amount-input-wrap:focus-within #amount-input { color: #000; font-weight: 400; }
+    #amount-zone:focus-within #amount-input { color: #000; font-weight: 300; }
 
-    #amount-placeholder {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      padding: 0 18px;
-      pointer-events: none;
-      font-family: var(--sans);
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--accent);
-      transition: color 0.2s;
-    }
-
-    .amount-input-wrap:focus-within #amount-placeholder { color: rgba(0,0,0,0.4); }
 
     #clear-btn {
       flex-shrink: 0;
       width: 28px;
       height: 28px;
-      margin-right: 14px;
+      margin-right: 0;
       visibility: hidden;
       opacity: 0;
       border-radius: 50%;
       border: none;
-      background: #3a3a3a;
+      background: rgba(0,0,0,0.3);
       color: #fff;
       font-size: 13px;
       line-height: 1;
@@ -434,12 +413,10 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: opacity 0.15s, border-color 0.15s, color 0.15s;
+      transition: opacity 0.15s;
     }
     #clear-btn.visible { visibility: visible; opacity: 1; }
-    #clear-btn:hover { border-color: var(--text-mid); color: var(--text); }
-    .amount-input-wrap:focus-within #clear-btn { border-color: rgba(0,0,0,0.2); background: rgba(0,0,0,0.15); color: #fff; }
-    .amount-input-wrap:focus-within #clear-btn:hover { border-color: rgba(0,0,0,0.4); background: rgba(0,0,0,0.25); }
+    #clear-btn:hover { background: rgba(0,0,0,0.5); }
 
     /* ── CURRENCY PAIR ── */
     .currency-grid {
@@ -481,10 +458,13 @@
     }
 
     select.currency-select:focus { border-color: var(--accent); }
-    main:has(#amount-input:focus) #from-select { border-color: var(--accent); }
-    main:has(#amount-input:focus) .arrow-indicator { color: var(--accent); }
+    body:has(#amount-input:focus) #from-select { border-color: var(--accent); }
+    body:has(#amount-input:focus) .arrow-indicator { color: var(--accent); }
     main.has-amount:not(:has(#result-block:not(.hidden))) #from-select { border-color: var(--accent); }
     main.has-amount:not(:has(#result-block:not(.hidden))) .arrow-indicator { color: var(--accent); }
+    main:has(#result-block:not(.hidden)) #from-select { border-color: var(--accent); }
+    main:has(#result-block:not(.hidden)) #to-select { border-color: var(--accent); }
+    main:has(#result-block:not(.hidden)) .arrow-indicator { color: var(--accent); }
 
     .arrow-indicator {
       height: 60px;
@@ -523,16 +503,11 @@
     #convert-btn:active { transform: scale(0.99); }
     #convert-btn:disabled { background: var(--surface2); color: var(--text-dim); cursor: not-allowed; }
 
-    main:has(#result-block:not(.hidden)) .amount-input-wrap { border-color: var(--border); }
-    #result-block:not(.hidden) { border-color: var(--accent); }
 
     /* ── RESULT ── */
     .result-block {
-      background: var(--surface);
-      border: 3px solid var(--border);
-      border-radius: 6px;
-      padding: 24px 22px;
-      margin-bottom: 28px;
+      padding: 0;
+      margin-bottom: 50px;
       animation: slideIn 0.25s ease;
     }
 
@@ -744,8 +719,9 @@
     /* ── RESPONSIVE ── */
     @media (max-width: 480px) {
       header { padding: 0 18px; height: 58px; }
-      main { padding: 24px 16px 48px; }
-      .result-amount { font-size: clamp(18px, 10vw, 44px); }
+      #amount-zone { padding: 12px 16px 9px; }
+      main { padding: 20px 16px 48px; }
+      .result-amount { font-size: clamp(18px, 13vw, 50px); }
     }
   </style>
 </head>
@@ -780,24 +756,24 @@
 
     <!-- FRONT: main app -->
     <div id="flip-front">
-      <main>
 
-        <!-- AMOUNT -->
-        <div class="amount-block">
-          <div class="field-label">Amount</div>
-          <div class="amount-input-wrap">
-            <div class="input-field">
-              <input type="text" inputmode="decimal" id="amount-input" autocomplete="off" />
-              <span id="amount-placeholder">Enter amount</span>
-            </div>
-            <button id="clear-btn" aria-label="Clear amount"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 1.5L10.5 10.5M10.5 1.5L1.5 10.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+      <!-- AMOUNT ZONE -->
+      <div id="amount-zone">
+        <div class="field-label">Amount</div>
+        <div class="amount-input-wrap">
+          <div class="input-field">
+            <input type="text" inputmode="decimal" id="amount-input" autocomplete="off" />
           </div>
+          <button id="clear-btn" aria-label="Clear amount"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 1.5L10.5 10.5M10.5 1.5L1.5 10.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
         </div>
+      </div>
+
+      <main>
 
         <!-- CURRENCY PAIR -->
         <div class="currency-grid">
           <div class="currency-select-wrap">
-            <div class="field-label">From</div>
+            <div class="field-label currency-label">From</div>
             <select id="from-select" class="currency-select"></select>
           </div>
 
@@ -808,7 +784,7 @@
           </button>
 
           <div class="currency-select-wrap">
-            <div class="field-label">To</div>
+            <div class="field-label currency-label">To</div>
             <select id="to-select" class="currency-select"></select>
           </div>
         </div>
@@ -1046,7 +1022,7 @@
   function getEnabledCurrencies() {
     try {
       const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY));
-      if (Array.isArray(saved) && saved.length >= 2) return saved;
+      if (Array.isArray(saved) && saved.length >= 2 && saved.every(c => CURRENCY_META[c])) return saved;
     } catch(e) {}
     return DEFAULT_CURRENCIES;
   }
@@ -1213,7 +1189,7 @@
     const from   = fromSelect.value;
     const to     = toSelect.value;
 
-    if (isNaN(amount) || amount < 0) {
+    if (isNaN(amount) || amount <= 0) {
       showError('Please enter a valid amount.');
       return;
     }
@@ -1232,11 +1208,12 @@
       showMultiGrid(amount, from, rates, updatedAt);
       checkVolatility(from, to);
       setStatus('ready');
+      convertBtn.disabled = true;
     } catch (err) {
       showError(err.message || 'Failed to fetch rates. Try again.');
       setStatus('error');
+      convertBtn.disabled = false;
     } finally {
-      convertBtn.disabled = true;
       convertBtn.textContent = 'CONVERT';
     }
   }
@@ -1294,10 +1271,10 @@
   }
 
   function formatNum(n, ccy) {
-    const noDecimals = ['VND', 'JPY', 'KRW', 'IDR', 'THB'];
+    const noDecimals = new Set(['VND', 'JPY', 'KRW', 'IDR', 'THB']);
     return n.toLocaleString('en-US', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: noDecimals.includes(ccy) ? 0 : 2,
+      minimumFractionDigits: noDecimals.has(ccy) ? 0 : 2,
+      maximumFractionDigits: noDecimals.has(ccy) ? 0 : 2,
     });
   }
 
@@ -1344,7 +1321,12 @@
     el.setSelectionRange(newPos, newPos);
   }
 
-  const amountPlaceholder = document.getElementById('amount-placeholder');
+  function hideResults() {
+    resultBlock.classList.add('hidden');
+    multiBlock.classList.add('hidden');
+    volatilityBlock.classList.add('hidden');
+    errorBlock.classList.add('hidden');
+  }
 
   amountInput.addEventListener('input', () => {
     formatAmountInput();
@@ -1352,7 +1334,7 @@
     convertBtn.disabled = !hasValue;
     clearBtn.classList.toggle('visible', hasValue);
     mainEl.classList.toggle('has-amount', hasValue);
-    amountPlaceholder.style.display = hasValue ? 'none' : 'flex';
+    hideResults();
   });
 
   amountInput.addEventListener('keydown', e => {
@@ -1375,33 +1357,19 @@
     convertBtn.disabled = true;
     clearBtn.classList.remove('visible');
     mainEl.classList.remove('has-amount');
-    amountPlaceholder.style.display = 'flex';
-    resultBlock.classList.add('hidden');
-    multiBlock.classList.add('hidden');
-    volatilityBlock.classList.add('hidden');
+    hideResults();
   });
 
-  fromSelect.addEventListener('change', () => {
-    resultBlock.classList.add('hidden');
-    multiBlock.classList.add('hidden');
-    volatilityBlock.classList.add('hidden');
+  [fromSelect, toSelect].forEach(sel => sel.addEventListener('change', () => {
+    hideResults();
     convertBtn.disabled = amountInput.value.replace(/,/g, '').trim() === '';
-  });
-
-  toSelect.addEventListener('change', () => {
-    resultBlock.classList.add('hidden');
-    multiBlock.classList.add('hidden');
-    volatilityBlock.classList.add('hidden');
-    convertBtn.disabled = amountInput.value.replace(/,/g, '').trim() === '';
-  });
+  }));
 
   swapBtn.addEventListener('click', () => {
     const tmp = fromSelect.value;
     fromSelect.value = toSelect.value;
     toSelect.value = tmp;
-    resultBlock.classList.add('hidden');
-    multiBlock.classList.add('hidden');
-    volatilityBlock.classList.add('hidden');
+    hideResults();
     convertBtn.disabled = amountInput.value.replace(/,/g, '').trim() === '';
     amountInput.focus();
   });
