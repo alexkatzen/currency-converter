@@ -39,6 +39,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
+      --header-h: 66px;
       --bg: #0a0a0a;
       --surface: #111111;
       --surface2: #1a1a1a;
@@ -70,36 +71,23 @@
       position: relative;
     }
 
-    /* ── FLIP ── */
-    #flip-wrap {
-      flex: 1;
-      position: relative;
-      overflow: clip;
-      perspective: 2400px;
-      perspective-origin: 50% 0;
-    }
-
-    #flip-front {
-      position: relative;
-      backface-visibility: hidden;
-      -webkit-backface-visibility: hidden;
-      transform: rotateY(0deg);
-      transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    #flip-back {
-      position: absolute;
-      inset: 0;
+    /* ── SETTINGS PANEL ── */
+    #settings-panel {
+      position: fixed;
+      top: var(--header-h);
+      left: 0;
+      right: 0;
+      bottom: 0;
       overflow-y: auto;
-      backface-visibility: hidden;
-      -webkit-backface-visibility: hidden;
-      transform: rotateY(180deg);
-      transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
       background: var(--bg);
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 10;
     }
 
-    #flip-wrap.flipped #flip-front { transform: rotateY(-180deg); }
-    #flip-wrap.flipped #flip-back  { transform: rotateY(0deg); }
+    #settings-panel.open {
+      transform: translateY(0);
+    }
 
     /* ── HEADER ── */
     header {
@@ -734,6 +722,7 @@
 
     /* ── RESPONSIVE ── */
     @media (max-width: 480px) {
+      :root { --header-h: 58px; }
       header { padding: 0 18px; height: 58px; }
       main { padding: 24px 16px 48px; }
       .result-amount { font-size: clamp(18px, 13vw, 50px); }
@@ -767,87 +756,79 @@
   </div>
 </header>
 
-<div id="flip-wrap">
+<main>
 
-    <!-- FRONT: main app -->
-    <div id="flip-front">
-      <main>
-
-        <!-- AMOUNT -->
-        <div class="amount-block">
-          <div class="field-label">Amount</div>
-          <div class="amount-input-wrap">
-            <div class="input-field">
-              <input type="text" inputmode="decimal" id="amount-input" autocomplete="off" />
-              <span id="amount-placeholder">Enter amount</span>
-            </div>
-            <button id="clear-btn" aria-label="Clear amount"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 1.5L10.5 10.5M10.5 1.5L1.5 10.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
-          </div>
-        </div>
-
-        <!-- CURRENCY PAIR -->
-        <div class="currency-grid">
-          <div class="currency-select-wrap">
-            <div class="field-label">From</div>
-            <select id="from-select" class="currency-select"></select>
-          </div>
-
-          <button class="arrow-indicator" id="swap-btn" title="Swap currencies" aria-label="Swap currencies">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-
-          <div class="currency-select-wrap">
-            <div class="field-label">To</div>
-            <select id="to-select" class="currency-select"></select>
-          </div>
-        </div>
-
-        <!-- CONVERT -->
-        <button id="convert-btn" disabled>CONVERT</button>
-
-        <!-- ERROR -->
-        <div id="error-block" class="error-msg hidden"></div>
-
-        <!-- RESULT -->
-        <div id="result-block" class="result-block hidden">
-          <div class="result-meta" id="result-meta">RESULT</div>
-          <div class="result-main">
-            <div class="result-amount" id="result-amount">—</div>
-            <div class="result-currency" id="result-currency">—</div>
-          </div>
-          <div class="result-rate" id="result-rate"></div>
-        </div>
-
-        <!-- VOLATILITY WARNING -->
-        <div id="volatility-block" class="volatility-warn hidden"></div>
-
-        <!-- OTHER CURRENCIES -->
-        <div id="multi-block" class="hidden">
-          <div class="multi-label">
-            <span id="multi-label-amount"></span>
-          </div>
-          <div class="multi-grid" id="multi-grid"></div>
-        </div>
-
-      </main>
-    </div><!-- /flip-front -->
-
-    <!-- BACK: settings -->
-    <div id="flip-back">
-      <div class="settings-content">
-        <div class="settings-section-label">Currencies</div>
-        <input type="search" id="currency-search" placeholder="Search…" autocomplete="off" />
-        <div id="settings-error" class="hidden"></div>
-        <div id="currency-toggles"></div>
-        <div class="settings-footer">
-          <button id="restore-defaults-btn">Restore defaults</button>
-        </div>
+  <!-- AMOUNT -->
+  <div class="amount-block">
+    <div class="field-label">Amount</div>
+    <div class="amount-input-wrap">
+      <div class="input-field">
+        <input type="text" inputmode="decimal" id="amount-input" autocomplete="off" />
+        <span id="amount-placeholder">Enter amount</span>
       </div>
-    </div><!-- /flip-back -->
+      <button id="clear-btn" aria-label="Clear amount"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 1.5L10.5 10.5M10.5 1.5L1.5 10.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
 
-</div><!-- /flip-wrap -->
+  <!-- CURRENCY PAIR -->
+  <div class="currency-grid">
+    <div class="currency-select-wrap">
+      <div class="field-label">From</div>
+      <select id="from-select" class="currency-select"></select>
+    </div>
+
+    <button class="arrow-indicator" id="swap-btn" title="Swap currencies" aria-label="Swap currencies">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+
+    <div class="currency-select-wrap">
+      <div class="field-label">To</div>
+      <select id="to-select" class="currency-select"></select>
+    </div>
+  </div>
+
+  <!-- CONVERT -->
+  <button id="convert-btn" disabled>CONVERT</button>
+
+  <!-- ERROR -->
+  <div id="error-block" class="error-msg hidden"></div>
+
+  <!-- RESULT -->
+  <div id="result-block" class="result-block hidden">
+    <div class="result-meta" id="result-meta">RESULT</div>
+    <div class="result-main">
+      <div class="result-amount" id="result-amount">—</div>
+      <div class="result-currency" id="result-currency">—</div>
+    </div>
+    <div class="result-rate" id="result-rate"></div>
+  </div>
+
+  <!-- VOLATILITY WARNING -->
+  <div id="volatility-block" class="volatility-warn hidden"></div>
+
+  <!-- OTHER CURRENCIES -->
+  <div id="multi-block" class="hidden">
+    <div class="multi-label">
+      <span id="multi-label-amount"></span>
+    </div>
+    <div class="multi-grid" id="multi-grid"></div>
+  </div>
+
+</main>
+
+<div id="settings-panel">
+  <div class="settings-content">
+    <div class="settings-section-label">Currencies</div>
+    <input type="search" id="currency-search" placeholder="Search…" autocomplete="off" />
+    <div id="settings-error" class="hidden"></div>
+    <div id="currency-toggles"></div>
+    <div class="settings-footer">
+      <button id="restore-defaults-btn">Restore defaults</button>
+    </div>
+  </div>
+</div>
 
 <script>
   // ── Constants ──────────────────────────────────────────────────────
@@ -1068,7 +1049,7 @@
   const statusDot       = document.getElementById('status-dot');
   const statusText      = document.getElementById('status-text');
   const mainEl          = document.querySelector('main');
-  const flipWrap        = document.getElementById('flip-wrap');
+  const settingsPanel   = document.getElementById('settings-panel');
   const headerMain      = document.getElementById('header-main');
   const headerSettings  = document.getElementById('header-settings');
   const settingsBtn     = document.getElementById('settings-btn');
@@ -1141,7 +1122,7 @@
     settingsError.classList.add('hidden');
     headerMain.classList.add('hidden');
     headerSettings.classList.remove('hidden');
-    flipWrap.classList.add('flipped');
+    settingsPanel.classList.add('open');
   });
 
   doneBtn.addEventListener('click', () => {
@@ -1160,11 +1141,8 @@
     saveEnabledCurrencies(checked);
     headerSettings.classList.add('hidden');
     headerMain.classList.remove('hidden');
-    flipWrap.classList.remove('flipped');
+    settingsPanel.classList.remove('open');
     populateSelects();
-    resultBlock.classList.add('hidden');
-    multiBlock.classList.add('hidden');
-    volatilityBlock.classList.add('hidden');
   });
 
   // ── Fetch rates ────────────────────────────────────────────────────
