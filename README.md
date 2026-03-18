@@ -31,8 +31,7 @@ The app is registered as a [Progressive Web App](https://developer.mozilla.org/e
 - `index.html`
 - `manifest.json`
 - `logo.svg` (wordmark)
-- `fonts/space-mono-400.woff2`
-- `fonts/space-mono-700.woff2`
+- `fonts/space-grotesk.woff2`
 - `fonts/outfit-400.woff2`
 
 Every subsequent launch loads entirely from cache — no network required for the app shell. This eliminates the 3–7 second blank screen that would otherwise occur on a slow connection while the browser waits for fonts and HTML to download.
@@ -58,10 +57,10 @@ A small set of currencies known for high volatility (ARS, TRY, NGN, etc.) trigge
 Tap the sliders icon in the header to open the settings panel. From there you can:
 
 - **Enable or disable currencies** — choose which currencies appear in the converter dropdowns. 160+ currencies are available, sourced from ExchangeRate-API.
-- **Search** — filter the currency list by code or name to find what you need quickly.
+- **Search** — filter the currency list by code, name, or country name (e.g. "Vietnam", "United States").
 - **Restore defaults** — reset to the default set (USD, EUR, THB, VND, TWD, CNY).
 
-Enabled currencies are saved to `localStorage` and persist across sessions. The settings panel opens with a card-flip animation.
+Enabled currencies are saved to `localStorage` and persist across sessions. The settings panel slides up from the bottom, and enabled currencies are always sorted to the top of the list.
 
 ---
 
@@ -76,8 +75,7 @@ icon-192.png        — PWA home screen icon
 icon-512.png        — PWA splash / store icon
 favicon.ico         — browser tab icon
 fonts/
-  space-mono-400.woff2
-  space-mono-700.woff2
+  space-grotesk.woff2
   outfit-400.woff2
 ```
 
