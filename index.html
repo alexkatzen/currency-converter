@@ -109,6 +109,7 @@
       padding: 0 28px;
       height: 66px;
       flex-shrink: 0;
+      border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
       background: var(--bg);
@@ -128,7 +129,7 @@
     .logo span {
       font-family: var(--sans);
       font-size: 13px;
-      font-weight: 300;
+      font-weight: 400;
       color: var(--text-dim);
       letter-spacing: 0.08em;
       margin-left: 5px;
@@ -426,12 +427,12 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: opacity 0.15s;
+      transition: opacity 0.15s, border-color 0.15s, color 0.15s;
     }
     #clear-btn.visible { visibility: visible; opacity: 1; }
-    #clear-btn:hover { background: #555; }
-    .amount-input-wrap:focus-within #clear-btn { background: rgba(0,0,0,0.15); color: #fff; }
-    .amount-input-wrap:focus-within #clear-btn:hover { background: rgba(0,0,0,0.25); }
+    #clear-btn:hover { border-color: var(--text-mid); color: var(--text); }
+    .amount-input-wrap:focus-within #clear-btn { border-color: rgba(0,0,0,0.2); background: rgba(0,0,0,0.15); color: #fff; }
+    .amount-input-wrap:focus-within #clear-btn:hover { border-color: rgba(0,0,0,0.4); background: rgba(0,0,0,0.25); }
 
     /* ── CURRENCY PAIR ── */
     .currency-grid {
@@ -518,7 +519,6 @@
     #convert-btn:hover { background: #c8f200; }
     #convert-btn:active { transform: scale(0.99); }
     #convert-btn:disabled { background: var(--surface2); color: var(--text-dim); cursor: not-allowed; }
-
 
     /* ── RESULT ── */
     .result-block {
@@ -1305,6 +1305,13 @@
     errorBlock.classList.add('hidden');
   }
 
+  function hideResults() {
+    resultBlock.classList.add('hidden');
+    multiBlock.classList.add('hidden');
+    volatilityBlock.classList.add('hidden');
+    errorBlock.classList.add('hidden');
+  }
+
   function setStatus(state) {
     statusDot.className = 'status-dot';
     if (state === 'loading') {
@@ -1322,12 +1329,6 @@
   // ── Events ─────────────────────────────────────────────────────────
   convertBtn.addEventListener('click', convert);
 
-  document.addEventListener('touchstart', e => {
-    if (!e.target.closest('.amount-input-wrap')) amountInput.blur();
-  }, { passive: true });
-
-  const amountPlaceholder = document.getElementById('amount-placeholder');
-
   function formatAmountInput() {
     const el = amountInput;
     const cursorFromEnd = el.value.length - el.selectionEnd;
@@ -1342,12 +1343,7 @@
     el.setSelectionRange(newPos, newPos);
   }
 
-  function hideResults() {
-    resultBlock.classList.add('hidden');
-    multiBlock.classList.add('hidden');
-    volatilityBlock.classList.add('hidden');
-    errorBlock.classList.add('hidden');
-  }
+  const amountPlaceholder = document.getElementById('amount-placeholder');
 
   amountInput.addEventListener('input', () => {
     formatAmountInput();
@@ -1356,7 +1352,6 @@
     clearBtn.classList.toggle('visible', hasValue);
     mainEl.classList.toggle('has-amount', hasValue);
     amountPlaceholder.style.display = hasValue ? 'none' : 'flex';
-    hideResults();
   });
 
   amountInput.addEventListener('keydown', e => {
@@ -1396,6 +1391,10 @@
     convertBtn.disabled = amountInput.value.replace(/,/g, '').trim() === '';
     amountInput.focus();
   });
+
+  document.addEventListener('touchstart', e => {
+    if (!e.target.closest('.amount-input-wrap')) amountInput.blur();
+  }, { passive: true });
 
   // ── Init ───────────────────────────────────────────────────────────
   populateSelects();
