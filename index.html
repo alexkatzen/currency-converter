@@ -852,7 +852,7 @@
   const SETTINGS_KEY        = 'xchg_enabled_ccys';
   const DEFAULT_CURRENCIES  = ['USD', 'EUR', 'THB', 'VND', 'TWD', 'CNY'];
   const VOLATILE_CURRENCIES = new Set(['ARS','TRY','NGN','PKR','EGP','IRR','VES','ZWL']);
-  const NO_DECIMALS         = new Set(['VND', 'JPY', 'KRW', 'IDR', 'THB']);
+  const NO_DECIMALS         = new Set(['BIF','CLP','DJF','GNF','HUF','IDR','ISK','JPY','KMF','KRW','PYG','RWF','THB','UGX','VND','VUV','XAF','XOF','XPF']);
 
   // ── Currency metadata ──────────────────────────────────────────────
   const CURRENCY_META = {
@@ -1065,6 +1065,7 @@
   const statusText      = document.getElementById('status-text');
   const mainEl          = document.querySelector('main');
   const settingsPanel   = document.getElementById('settings-panel');
+  const currencyToggles = document.getElementById('currency-toggles');
   const headerMain      = document.getElementById('header-main');
   const headerSettings  = document.getElementById('header-settings');
   const settingsBtn     = document.getElementById('settings-btn');
@@ -1100,7 +1101,7 @@
   // ── Settings panel ─────────────────────────────────────────────────
   function renderCurrencyToggles(filter = '') {
     const enabled = new Set(getEnabledCurrencies());
-    const container = document.getElementById('currency-toggles');
+    const container = currencyToggles;
     const q = filter.toLowerCase();
     container.innerHTML = '';
 
