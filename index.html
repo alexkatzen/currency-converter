@@ -419,8 +419,8 @@
     }
     #clear-btn.visible { opacity: 1; pointer-events: auto; }
     #clear-btn:hover { color: var(--text); }
-    .amount-input-wrap:focus-within #clear-btn { border-color: rgba(0,0,0,0.2); background: rgba(0,0,0,0.15); color: #fff; }
-    .amount-input-wrap:focus-within #clear-btn:hover { border-color: rgba(0,0,0,0.4); background: rgba(0,0,0,0.25); }
+    .amount-input-wrap:focus-within #clear-btn { background: rgba(0,0,0,0.15); color: #fff; }
+    .amount-input-wrap:focus-within #clear-btn:hover { background: rgba(0,0,0,0.25); }
 
     /* ── CURRENCY PAIR ── */
     .currency-grid {
@@ -1234,7 +1234,6 @@
       showResult(amount, from, converted, to, rate, updatedAt);
       showMultiGrid(amount, from, rates, updatedAt);
       checkVolatility(from, to);
-      setStatus('ready');
     } catch (err) {
       showError(err.message || 'Failed to fetch rates. Try again.');
       setStatus('error');
@@ -1297,9 +1296,10 @@
   }
 
   function formatNum(n, ccy) {
+    const decimals = NO_DECIMALS.has(ccy) ? 0 : 2;
     return n.toLocaleString('en-US', {
-      minimumFractionDigits: NO_DECIMALS.has(ccy) ? 0 : 2,
-      maximumFractionDigits: NO_DECIMALS.has(ccy) ? 0 : 2,
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
     });
   }
 
