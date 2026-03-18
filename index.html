@@ -1090,8 +1090,23 @@
     const container = document.getElementById('currency-toggles');
     const q = filter.toLowerCase();
     container.innerHTML = '';
-    Object.entries(CURRENCY_META).forEach(([code, meta]) => {
-      if (q && !code.toLowerCase().includes(q) && !meta.name.toLowerCase().includes(q) && !meta.country.toLowerCase().includes(q)) return;
+
+    let entries = Object.entries(CURRENCY_META);
+    if (q) {
+      entries = entries.filter(([code, meta]) =>
+        code.toLowerCase().includes(q) ||
+        meta.name.toLowerCase().includes(q) ||
+        meta.country.toLowerCase().includes(q)
+      );
+    } else {
+      entries.sort(([a], [b]) => {
+        const ae = enabled.has(a), be = enabled.has(b);
+        if (ae !== be) return ae ? -1 : 1;
+        return a.localeCompare(b);
+      });
+    }
+
+    entries.forEach(([code, meta]) => {
       const row = document.createElement('div');
       row.className = 'settings-row';
       row.innerHTML = `
