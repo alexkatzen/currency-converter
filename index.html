@@ -418,7 +418,7 @@
       transition: opacity 0.15s, border-color 0.15s, color 0.15s;
     }
     #clear-btn.visible { opacity: 1; pointer-events: auto; }
-    #clear-btn:hover { border-color: var(--text-mid); color: var(--text); }
+    #clear-btn:hover { color: var(--text); }
     .amount-input-wrap:focus-within #clear-btn { border-color: rgba(0,0,0,0.2); background: rgba(0,0,0,0.15); color: #fff; }
     .amount-input-wrap:focus-within #clear-btn:hover { border-color: rgba(0,0,0,0.4); background: rgba(0,0,0,0.25); }
 
@@ -650,7 +650,7 @@
       color: var(--text-dim);
     }
 
-    .multi-row .ccy {
+    .multi-row .currency-name {
       font-family: var(--sans);
       font-size: 12px;
       color: var(--text-dim);
@@ -1185,7 +1185,7 @@
     const cached = loadRates();
     if (cached) {
       sessionRates = cached;
-      if (isStale(cached)) refreshRates(true);
+      if (isStale(cached)) refreshRates(true).catch(() => {});
       return cached;
     }
     return await refreshRates(false);
@@ -1276,7 +1276,7 @@
       row.innerHTML = `
         <span class="flag">${meta.flag}</span>
         <span class="value">${formatNum(val, ccy)}&nbsp;&nbsp;<span class="value-code">${ccy}</span></span>
-        <span class="ccy">${meta.name}</span>
+        <span class="currency-name">${meta.name}</span>
       `;
       multiGrid.appendChild(row);
     });
@@ -1337,6 +1337,8 @@
   // ── Events ─────────────────────────────────────────────────────────
   convertBtn.addEventListener('click', convert);
 
+  const hasAmount = () => amountInput.value.replace(/,/g, '').trim() !== '';
+
   function formatAmountInput() {
     const el = amountInput;
     const cursorFromEnd = el.value.length - el.selectionEnd;
@@ -1386,8 +1388,6 @@
     amountPlaceholder.classList.remove('hidden');
     hideResults();
   });
-
-  const hasAmount = () => amountInput.value.replace(/,/g, '').trim() !== '';
 
   [fromSelect, toSelect].forEach(sel => sel.addEventListener('change', () => {
     hideResults();
