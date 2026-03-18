@@ -415,7 +415,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: opacity 0.15s, border-color 0.15s, color 0.15s;
+      transition: opacity 0.15s, color 0.15s;
     }
     #clear-btn.visible { opacity: 1; pointer-events: auto; }
     #clear-btn:hover { color: var(--text); }
@@ -1206,7 +1206,7 @@
 
     saveRates(entry);
     sessionRates = entry;
-    setStatus('ready');
+    if (!silent) setStatus('ready');
     return entry;
   }
 
@@ -1221,7 +1221,7 @@
       return;
     }
 
-    hideError();
+    errorBlock.classList.add('hidden');
     convertBtn.disabled = true;
     convertBtn.innerHTML = '<span class="loader"></span>FETCHING';
 
@@ -1307,10 +1307,6 @@
     hideResults();
     errorBlock.textContent = `⚠  ${msg}`;
     errorBlock.classList.remove('hidden');
-  }
-
-  function hideError() {
-    errorBlock.classList.add('hidden');
   }
 
   function hideResults() {
