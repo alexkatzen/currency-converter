@@ -1236,7 +1236,7 @@
       showError(err.message || 'Failed to fetch rates. Try again.');
       setStatus('error');
     } finally {
-      convertBtn.textContent = 'CONVERT';
+      convertBtn.innerHTML = 'CONVERT';
       convertBtn.disabled = false;
     }
   }
@@ -1266,7 +1266,7 @@
     targets.forEach((ccy, i) => {
       if (!rates[ccy]) return;
       const val = amount * (rates[ccy] / rates[from]);
-      const meta = CURRENCY_META[ccy] || { flag: '🌐', name: ccy };
+      const meta = CURRENCY_META[ccy];
       const row = document.createElement('div');
       row.className = 'multi-row';
       row.style.animationDelay = `${i * 30}ms`;
