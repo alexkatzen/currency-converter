@@ -328,42 +328,38 @@
       max-width: 560px;
       width: 100%;
       margin: 0 auto;
-      padding: 24px 20px 60px;
+      padding: 18px 20px 60px;
       overflow-x: hidden;
     }
 
-    /* ── AMOUNT ZONE ── */
-    #amount-zone {
-      background: var(--surface);
-      transition: background 0.35s;
-      padding: 4px 20px 6px;
-    }
-
-    #amount-zone:focus-within {
-      background: #fff;
+    /* ── AMOUNT INPUT ── */
+    .amount-block {
+      margin-bottom: 14px;
     }
 
     .field-label {
       font-family: var(--sans);
       font-size: 10px;
       letter-spacing: 0.15em;
-      color: var(--accent);
+      color: var(--text-dim);
       text-transform: uppercase;
-    }
-
-    .currency-label { margin-bottom: 10px; }
-
-    #amount-zone:focus-within .field-label {
-      color: rgba(0, 0, 0, 0.4);
+      margin-bottom: 10px;
     }
 
     .amount-input-wrap {
       position: relative;
       display: flex;
       align-items: center;
-      background: transparent;
-      border: none;
+      background: var(--surface);
+      border: 3px solid var(--accent);
+      border-radius: 6px;
       overflow: hidden;
+      transition: background 0.2s;
+    }
+
+    .amount-input-wrap:focus-within {
+      background: #fff;
+      border-color: #fff;
     }
 
     .input-field {
@@ -372,7 +368,7 @@
       display: flex;
       align-items: center;
       min-width: 0;
-      height: 45px;
+      height: 56px;
     }
 
     #amount-input {
@@ -382,9 +378,9 @@
       outline: none;
       color: var(--text);
       font-family: var(--mono);
-      font-size: clamp(24px, 8vw, 32px);
+      font-size: clamp(16px, 5vw, 26px);
       font-weight: 300;
-      padding: 0;
+      padding: 0 18px;
       height: 100%;
       width: 100%;
       min-width: 0;
@@ -393,19 +389,36 @@
 
     #amount-input::placeholder { color: transparent; }
 
-    #amount-zone:focus-within #amount-input { color: #000; font-weight: 300; }
+    .amount-input-wrap:focus-within #amount-input { color: #000; font-weight: 400; }
 
+    #amount-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      pointer-events: none;
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      transition: color 0.2s;
+    }
+
+    .amount-input-wrap:focus-within #amount-placeholder { color: rgba(0,0,0,0.4); }
 
     #clear-btn {
       flex-shrink: 0;
       width: 28px;
       height: 28px;
-      margin-right: 0;
+      margin-right: 14px;
       visibility: hidden;
       opacity: 0;
       border-radius: 50%;
       border: none;
-      background: rgba(0,0,0,0.3);
+      background: #3a3a3a;
       color: #fff;
       font-size: 13px;
       line-height: 1;
@@ -416,7 +429,9 @@
       transition: opacity 0.15s;
     }
     #clear-btn.visible { visibility: visible; opacity: 1; }
-    #clear-btn:hover { background: rgba(0,0,0,0.5); }
+    #clear-btn:hover { background: #555; }
+    .amount-input-wrap:focus-within #clear-btn { background: rgba(0,0,0,0.15); color: #fff; }
+    .amount-input-wrap:focus-within #clear-btn:hover { background: rgba(0,0,0,0.25); }
 
     /* ── CURRENCY PAIR ── */
     .currency-grid {
@@ -458,13 +473,14 @@
     }
 
     select.currency-select:focus { border-color: var(--accent); }
-    body:has(#amount-input:focus) #from-select { border-color: var(--accent); }
-    body:has(#amount-input:focus) .arrow-indicator { color: var(--accent); }
+    main:has(#amount-input:focus) #from-select { border-color: var(--accent); }
+    main:has(#amount-input:focus) .arrow-indicator { color: var(--accent); }
     main.has-amount:not(:has(#result-block:not(.hidden))) #from-select { border-color: var(--accent); }
     main.has-amount:not(:has(#result-block:not(.hidden))) .arrow-indicator { color: var(--accent); }
     main:has(#result-block:not(.hidden)) #from-select { border-color: var(--accent); }
     main:has(#result-block:not(.hidden)) #to-select { border-color: var(--accent); }
     main:has(#result-block:not(.hidden)) .arrow-indicator { color: var(--accent); }
+    main:has(#result-block:not(.hidden)) .amount-input-wrap { border-color: var(--border); }
 
     .arrow-indicator {
       height: 60px;
@@ -719,8 +735,7 @@
     /* ── RESPONSIVE ── */
     @media (max-width: 480px) {
       header { padding: 0 18px; height: 58px; }
-      #amount-zone { padding: 12px 16px 9px; }
-      main { padding: 20px 16px 48px; }
+      main { padding: 24px 16px 48px; }
       .result-amount { font-size: clamp(18px, 13vw, 50px); }
     }
   </style>
@@ -756,24 +771,24 @@
 
     <!-- FRONT: main app -->
     <div id="flip-front">
-
-      <!-- AMOUNT ZONE -->
-      <div id="amount-zone">
-        <div class="field-label">Amount</div>
-        <div class="amount-input-wrap">
-          <div class="input-field">
-            <input type="text" inputmode="decimal" id="amount-input" autocomplete="off" />
-          </div>
-          <button id="clear-btn" aria-label="Clear amount"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 1.5L10.5 10.5M10.5 1.5L1.5 10.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
-        </div>
-      </div>
-
       <main>
+
+        <!-- AMOUNT -->
+        <div class="amount-block">
+          <div class="field-label">Amount</div>
+          <div class="amount-input-wrap">
+            <div class="input-field">
+              <input type="text" inputmode="decimal" id="amount-input" autocomplete="off" />
+              <span id="amount-placeholder">Enter amount</span>
+            </div>
+            <button id="clear-btn" aria-label="Clear amount"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 1.5L10.5 10.5M10.5 1.5L1.5 10.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+          </div>
+        </div>
 
         <!-- CURRENCY PAIR -->
         <div class="currency-grid">
           <div class="currency-select-wrap">
-            <div class="field-label currency-label">From</div>
+            <div class="field-label">From</div>
             <select id="from-select" class="currency-select"></select>
           </div>
 
@@ -784,7 +799,7 @@
           </button>
 
           <div class="currency-select-wrap">
-            <div class="field-label currency-label">To</div>
+            <div class="field-label">To</div>
             <select id="to-select" class="currency-select"></select>
           </div>
         </div>
@@ -1308,8 +1323,10 @@
   convertBtn.addEventListener('click', convert);
 
   document.addEventListener('touchstart', e => {
-    if (!e.target.closest('#amount-zone')) amountInput.blur();
+    if (!e.target.closest('.amount-input-wrap')) amountInput.blur();
   }, { passive: true });
+
+  const amountPlaceholder = document.getElementById('amount-placeholder');
 
   function formatAmountInput() {
     const el = amountInput;
@@ -1338,6 +1355,7 @@
     convertBtn.disabled = !hasValue;
     clearBtn.classList.toggle('visible', hasValue);
     mainEl.classList.toggle('has-amount', hasValue);
+    amountPlaceholder.style.display = hasValue ? 'none' : 'flex';
     hideResults();
   });
 
@@ -1361,6 +1379,7 @@
     convertBtn.disabled = true;
     clearBtn.classList.remove('visible');
     mainEl.classList.remove('has-amount');
+    amountPlaceholder.style.display = 'flex';
     hideResults();
   });
 
