@@ -32,7 +32,7 @@
     @font-face {
       font-family: 'Space Grotesk';
       font-style: normal;
-      font-weight: 300 700;
+      font-weight: 400;
       font-display: swap;
       src: url('fonts/space-grotesk.woff2') format('woff2');
     }
@@ -49,14 +49,14 @@
       --text-mid: #999;
       --accent: #d4ff00;
       --danger: #ff4444;
-      --mono: 'Space Grotesk', sans-serif;
+      --display: 'Space Grotesk', sans-serif;
       --sans: 'Outfit', sans-serif;
     }
 
     html, body {
       background: var(--bg);
       color: var(--text);
-      font-family: var(--mono);
+      font-family: var(--display);
       font-size: 14px;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
@@ -366,7 +366,7 @@
       border: none;
       outline: none;
       color: var(--text);
-      font-family: var(--mono);
+      font-family: var(--display);
       font-size: clamp(16px, 5vw, 26px);
       font-weight: 300;
       padding: 0 18px;
@@ -462,9 +462,9 @@
     }
 
     select.currency-select:focus { border-color: var(--accent); }
-    main:has(#amount-input:focus) #from-select { border-color: var(--accent); }
-    main:has(#amount-input:focus) .arrow-indicator { color: var(--accent); }
+    main:has(#amount-input:focus) #from-select,
     main.has-amount:not(:has(#result-block:not(.hidden))) #from-select { border-color: var(--accent); }
+    main:has(#amount-input:focus) .arrow-indicator,
     main.has-amount:not(:has(#result-block:not(.hidden))) .arrow-indicator { color: var(--accent); }
     main:has(#result-block:not(.hidden)) #from-select { border-color: var(--accent); }
     main:has(#result-block:not(.hidden)) #to-select { border-color: var(--accent); }
@@ -537,7 +537,7 @@
     }
 
     .result-amount {
-      font-family: var(--mono);
+      font-family: var(--display);
       font-size: clamp(20px, 8vw, 50px);
       font-weight: 300;
       color: var(--accent);
@@ -622,7 +622,7 @@
     .multi-row:hover { background: var(--surface2); }
 
     .multi-row .value {
-      font-family: var(--mono);
+      font-family: var(--display);
       font-size: clamp(14px, 4vw, 18px);
       font-weight: 400;
       color: var(--text);
@@ -633,6 +633,11 @@
       text-overflow: ellipsis;
     }
 
+
+    .multi-row .value-code {
+      font-family: var(--sans);
+      color: var(--text-dim);
+    }
 
     .multi-row .ccy {
       font-family: var(--sans);
@@ -838,7 +843,8 @@
   const CACHE_KEY           = 'xchg_rates_v2';
   const SETTINGS_KEY        = 'xchg_enabled_ccys';
   const DEFAULT_CURRENCIES  = ['USD', 'EUR', 'THB', 'VND', 'TWD', 'CNY'];
-  const VOLATILE_CURRENCIES = new Set(['ARS','TRY','NGN','PKR','EGP','IRR','VEF','ZWL']);
+  const VOLATILE_CURRENCIES = new Set(['ARS','TRY','NGN','PKR','EGP','IRR','VES','ZWL']);
+  const NO_DECIMALS         = new Set(['VND', 'JPY', 'KRW', 'IDR', 'THB']);
 
   // ── Currency metadata ──────────────────────────────────────────────
   const CURRENCY_META = {
@@ -899,7 +905,6 @@
     GYD: { name: 'Guyanese Dollar',          flag: '🇬🇾', country: 'Guyana' },
     HKD: { name: 'Hong Kong Dollar',         flag: '🇭🇰', country: 'Hong Kong' },
     HNL: { name: 'Honduran Lempira',         flag: '🇭🇳', country: 'Honduras' },
-    HRK: { name: 'Croatian Kuna',            flag: '🇭🇷', country: 'Croatia' },
     HTG: { name: 'Haitian Gourde',           flag: '🇭🇹', country: 'Haiti' },
     HUF: { name: 'Hungarian Forint',         flag: '🇭🇺', country: 'Hungary' },
     IDR: { name: 'Indonesian Rupiah',        flag: '🇮🇩', country: 'Indonesia' },
@@ -1259,7 +1264,7 @@
       row.style.animationDelay = `${i * 30}ms`;
       row.innerHTML = `
         <span class="flag">${meta.flag}</span>
-        <span class="value">${formatNum(val, ccy)}&nbsp;&nbsp;<span style="font-family:var(--sans);color:var(--text-dim)">${ccy}</span></span>
+        <span class="value">${formatNum(val, ccy)}&nbsp;&nbsp;<span class="value-code">${ccy}</span></span>
         <span class="ccy">${meta.name}</span>
       `;
       multiGrid.appendChild(row);
@@ -1281,10 +1286,9 @@
   }
 
   function formatNum(n, ccy) {
-    const noDecimals = new Set(['VND', 'JPY', 'KRW', 'IDR', 'THB']);
     return n.toLocaleString('en-US', {
-      minimumFractionDigits: noDecimals.has(ccy) ? 0 : 2,
-      maximumFractionDigits: noDecimals.has(ccy) ? 0 : 2,
+      minimumFractionDigits: NO_DECIMALS.has(ccy) ? 0 : 2,
+      maximumFractionDigits: NO_DECIMALS.has(ccy) ? 0 : 2,
     });
   }
 
@@ -1346,7 +1350,7 @@
     convertBtn.disabled = !hasValue;
     clearBtn.classList.toggle('visible', hasValue);
     mainEl.classList.toggle('has-amount', hasValue);
-    amountPlaceholder.style.display = hasValue ? 'none' : 'flex';
+    amountPlaceholder.classList.toggle('hidden', hasValue);
   });
 
   amountInput.addEventListener('keydown', e => {
@@ -1369,7 +1373,7 @@
     convertBtn.disabled = true;
     clearBtn.classList.remove('visible');
     mainEl.classList.remove('has-amount');
-    amountPlaceholder.style.display = 'flex';
+    amountPlaceholder.classList.remove('hidden');
     hideResults();
   });
 
