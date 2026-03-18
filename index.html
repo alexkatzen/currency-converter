@@ -32,7 +32,7 @@
     @font-face {
       font-family: 'Space Grotesk';
       font-style: normal;
-      font-weight: 400;
+      font-weight: 300 700;
       font-display: swap;
       src: url('fonts/space-grotesk.woff2') format('woff2');
     }
@@ -403,8 +403,8 @@
       width: 28px;
       height: 28px;
       margin-right: 14px;
-      visibility: hidden;
       opacity: 0;
+      pointer-events: none;
       border-radius: 50%;
       border: none;
       background: #3a3a3a;
@@ -417,7 +417,7 @@
       justify-content: center;
       transition: opacity 0.15s, border-color 0.15s, color 0.15s;
     }
-    #clear-btn.visible { visibility: visible; opacity: 1; }
+    #clear-btn.visible { opacity: 1; pointer-events: auto; }
     #clear-btn:hover { border-color: var(--text-mid); color: var(--text); }
     .amount-input-wrap:focus-within #clear-btn { border-color: rgba(0,0,0,0.2); background: rgba(0,0,0,0.15); color: #fff; }
     .amount-input-wrap:focus-within #clear-btn:hover { border-color: rgba(0,0,0,0.4); background: rgba(0,0,0,0.25); }
@@ -507,6 +507,17 @@
     #convert-btn:hover { background: #c8f200; }
     #convert-btn:active { transform: scale(0.99); }
     #convert-btn:disabled { background: var(--surface2); color: var(--text-dim); cursor: not-allowed; }
+
+    main:has(#result-block:not(.hidden)) #convert-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+    main:has(#result-block:not(.hidden)) #convert-btn:hover {
+      border-color: var(--text-mid);
+      color: var(--text);
+    }
+
 
     /* ── RESULT ── */
     .result-block {
@@ -1165,6 +1176,7 @@
     headerMain.classList.remove('hidden');
     settingsPanel.classList.remove('open');
     populateSelects();
+    hideResults();
   });
 
   // ── Fetch rates ────────────────────────────────────────────────────
@@ -1223,13 +1235,12 @@
       showMultiGrid(amount, from, rates, updatedAt);
       checkVolatility(from, to);
       setStatus('ready');
-      convertBtn.disabled = true;
     } catch (err) {
       showError(err.message || 'Failed to fetch rates. Try again.');
       setStatus('error');
-      convertBtn.disabled = false;
     } finally {
       convertBtn.textContent = 'CONVERT';
+      convertBtn.disabled = false;
     }
   }
 
@@ -1293,11 +1304,9 @@
   }
 
   function showError(msg) {
+    hideResults();
     errorBlock.textContent = `⚠  ${msg}`;
     errorBlock.classList.remove('hidden');
-    resultBlock.classList.add('hidden');
-    multiBlock.classList.add('hidden');
-    volatilityBlock.classList.add('hidden');
   }
 
   function hideError() {
@@ -1346,11 +1355,12 @@
 
   amountInput.addEventListener('input', () => {
     formatAmountInput();
-    const hasValue = amountInput.value.replace(/,/g, '').trim() !== '';
-    convertBtn.disabled = !hasValue;
-    clearBtn.classList.toggle('visible', hasValue);
-    mainEl.classList.toggle('has-amount', hasValue);
-    amountPlaceholder.classList.toggle('hidden', hasValue);
+    const has = hasAmount();
+    convertBtn.disabled = !has;
+    clearBtn.classList.toggle('visible', has);
+    mainEl.classList.toggle('has-amount', has);
+    amountPlaceholder.classList.toggle('hidden', has);
+    hideResults();
   });
 
   amountInput.addEventListener('keydown', e => {
@@ -1377,9 +1387,11 @@
     hideResults();
   });
 
+  const hasAmount = () => amountInput.value.replace(/,/g, '').trim() !== '';
+
   [fromSelect, toSelect].forEach(sel => sel.addEventListener('change', () => {
     hideResults();
-    convertBtn.disabled = amountInput.value.replace(/,/g, '').trim() === '';
+    convertBtn.disabled = !hasAmount();
   }));
 
   swapBtn.addEventListener('click', () => {
@@ -1387,7 +1399,7 @@
     fromSelect.value = toSelect.value;
     toSelect.value = tmp;
     hideResults();
-    convertBtn.disabled = amountInput.value.replace(/,/g, '').trim() === '';
+    convertBtn.disabled = !hasAmount();
     amountInput.focus();
   });
 
