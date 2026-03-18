@@ -611,7 +611,7 @@
       display: flex;
       align-items: center;
       background: var(--surface);
-      padding: 14px 18px;
+      padding: 8px 18px;
       gap: 14px;
       transition: background 0.15s;
       animation: slideIn 0.2s ease both;
@@ -623,27 +623,29 @@
 
     .multi-row .value {
       font-family: var(--mono);
-      font-size: clamp(11px, 3vw, 16px);
+      font-size: clamp(14px, 4vw, 18px);
       font-weight: 400;
       color: var(--text);
+      flex: 1;
       min-width: 0;
+      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
+
     .multi-row .ccy {
       font-family: var(--sans);
       font-size: 12px;
-      font-weight: 500;
-      color: var(--text-mid);
-      letter-spacing: 0.08em;
+      color: var(--text-dim);
       flex-shrink: 0;
     }
 
     .multi-row .flag {
-      font-size: 24px;
-      width: 28px;
+      font-size: 36px;
+      width: 42px;
       flex-shrink: 0;
+      text-align: center;
     }
 
     /* ── ERROR ── */
@@ -1242,8 +1244,8 @@
       row.style.animationDelay = `${i * 30}ms`;
       row.innerHTML = `
         <span class="flag">${meta.flag}</span>
-        <span class="value">${formatNum(val, ccy)}</span>
-        <span class="ccy">${ccy}</span>
+        <span class="value">${formatNum(val, ccy)}&nbsp;&nbsp;<span style="font-family:var(--sans);color:var(--text-dim)">${ccy}</span></span>
+        <span class="ccy">${meta.name}</span>
       `;
       multiGrid.appendChild(row);
     });
