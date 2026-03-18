@@ -603,9 +603,6 @@
       color: var(--text-dim);
       text-transform: uppercase;
       margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
     }
 
     .multi-grid {
@@ -1234,6 +1231,7 @@
       showResult(amount, from, converted, to, rate, updatedAt);
       showMultiGrid(amount, from, rates, updatedAt);
       checkVolatility(from, to);
+      setStatus('ready');
     } catch (err) {
       showError(err.message || 'Failed to fetch rates. Try again.');
       setStatus('error');
@@ -1253,7 +1251,7 @@
   function showResult(amount, from, converted, to, rate, updatedAt) {
     resultMeta.textContent = `${formatNum(amount, from)} ${from} =`;
     resultAmount.textContent = formatNum(converted, to);
-    resultCurrency.textContent = (CURRENCY_META[to] || {}).name || to;
+    resultCurrency.textContent = CURRENCY_META[to]?.name ?? to;
     resultRate.innerHTML =
       `<span>1 ${from} = <strong>${rate.toFixed(6)}</strong> ${to}</span><span>Rates from ${formatUpdated(updatedAt)}</span>`;
     resultBlock.classList.remove('hidden');
@@ -1266,7 +1264,7 @@
     const targets = enabled.filter(c => c !== from && CURRENCY_META[c]);
 
     targets.forEach((ccy, i) => {
-      if (!rates[ccy] || !rates[from]) return;
+      if (!rates[ccy]) return;
       const val = amount * (rates[ccy] / rates[from]);
       const meta = CURRENCY_META[ccy] || { flag: '🌐', name: ccy };
       const row = document.createElement('div');
