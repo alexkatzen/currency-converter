@@ -486,6 +486,8 @@
     }
 
     .arrow-indicator:hover { color: var(--accent); }
+    @keyframes spin-ccw { to { transform: rotate(-360deg); } }
+    .arrow-indicator.spinning svg { animation: spin-ccw 0.35s cubic-bezier(0.2, 0, 0.4, 1) both; }
 
     /* ── CONVERT BUTTON ── */
     #convert-btn {
@@ -1410,6 +1412,9 @@
     hideResults();
     convertBtn.disabled = !hasAmount();
     amountInput.focus();
+    swapBtn.classList.remove('spinning');
+    void swapBtn.offsetWidth; // force reflow so animation restarts
+    swapBtn.classList.add('spinning');
   });
 
   document.addEventListener('touchstart', e => {
