@@ -19,6 +19,7 @@
   <meta name="description" content="Currency Converter — real-time exchange rates" />
   <title>Giá.exchange — Currency Converter</title>
   <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="icon" href="favicon.ico" sizes="any" />
   <link rel="icon" href="icon-192.png" type="image/png" />
   <style>
@@ -492,7 +493,7 @@
       height: 52px;
       background: var(--accent);
       color: #000;
-      border: none;
+      border: 1px solid transparent;
       border-radius: 6px;
       font-family: var(--sans);
       font-size: 13px;
@@ -500,22 +501,35 @@
       letter-spacing: 0.15em;
       text-transform: uppercase;
       cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
+      transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.1s;
       margin-bottom: 32px;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: none;
     }
 
-    #convert-btn:hover { background: #c8f200; }
-    #convert-btn:active { transform: scale(0.99); }
-    #convert-btn:disabled { background: var(--surface2); color: var(--text-dim); cursor: not-allowed; }
-
-    main:has(#result-block:not(.hidden)) #convert-btn {
+    #convert-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    #convert-btn:active { transform: scale(0.99); background: #c8f200; }
+    main:has(#result-block:not(.hidden)) #convert-btn:not(:disabled):active {
       background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text-dim);
-    }
-    main:has(#result-block:not(.hidden)) #convert-btn:hover {
       border-color: var(--text-mid);
       color: var(--text);
+    }
+    #convert-btn:disabled { background: var(--surface2); color: var(--text-dim); cursor: not-allowed; }
+
+    @media (hover: hover) {
+      #convert-btn:hover { background: #c8f200; }
+      main:has(#result-block:not(.hidden)) #convert-btn:not(:disabled):hover {
+        background: transparent;
+        border-color: var(--text-mid);
+        color: var(--text);
+      }
+    }
+
+    main:has(#result-block:not(.hidden)) #convert-btn:not(:disabled) {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--text-dim);
     }
 
 
@@ -1157,7 +1171,7 @@
   });
 
   doneBtn.addEventListener('click', () => {
-    const visibleInputs = [...document.querySelectorAll('#currency-toggles input')];
+    const visibleInputs = [...currencyToggles.querySelectorAll('input')];
     const visibleCodes  = new Set(visibleInputs.map(el => el.value));
     const visibleChecked = new Set(visibleInputs.filter(el => el.checked).map(el => el.value));
     // Preserve enabled currencies that are filtered out of the current view
@@ -1230,7 +1244,7 @@
       const rate = rates[to] / rates[from];
       const converted = amount * rate;
       showResult(amount, from, converted, to, rate, updatedAt);
-      showMultiGrid(amount, from, rates, updatedAt);
+      showMultiGrid(amount, from, rates);
       checkVolatility(from, to);
       setStatus('ready');
     } catch (err) {
@@ -1258,7 +1272,7 @@
     resultBlock.classList.remove('hidden');
   }
 
-  function showMultiGrid(amount, from, rates, updatedAt) {
+  function showMultiGrid(amount, from, rates) {
     multiGrid.innerHTML = '';
     document.getElementById('multi-label-amount').textContent = `${formatNum(amount, from)} ${from} =`;
     const enabled = getEnabledCurrencies();
@@ -1331,6 +1345,7 @@
 
   // ── Events ─────────────────────────────────────────────────────────
   convertBtn.addEventListener('click', convert);
+  convertBtn.addEventListener('touchstart', () => {}, { passive: true });
 
   const hasAmount = () => amountInput.value.replace(/,/g, '').trim() !== '';
 
