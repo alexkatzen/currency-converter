@@ -487,7 +487,9 @@
 
     .arrow-indicator:hover { color: var(--accent); }
     @keyframes spin-ccw { to { transform: rotate(-360deg); } }
-    .arrow-indicator.spinning svg { animation: spin-ccw 0.35s cubic-bezier(0.2, 0, 0.4, 1) both; }
+    @media (prefers-reduced-motion: no-preference) {
+      .arrow-indicator.spinning svg { animation: spin-ccw 0.35s cubic-bezier(0.2, 0, 0.4, 1) both; }
+    }
 
     /* ── CONVERT BUTTON ── */
     #convert-btn {
@@ -808,7 +810,7 @@
     </div>
 
     <button class="arrow-indicator" id="swap-btn" title="Swap currencies" aria-label="Swap currencies">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg width="30" height="30" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </button>
@@ -1059,6 +1061,7 @@
 
   // ── In-memory reference ────────────────────────────────────────────
   let sessionRates = null;
+  let lastConverted = null; // raw numeric result of last conversion
 
   // ── DOM refs ───────────────────────────────────────────────────────
   const fromSelect      = document.getElementById('from-select');
@@ -1265,6 +1268,7 @@
   }
 
   function showResult(amount, from, converted, to, rate, updatedAt) {
+    lastConverted = converted;
     resultMeta.textContent = `${formatNum(amount, from)} ${from} =`;
     resultAmount.textContent = formatNum(converted, to);
     resultCurrency.textContent = CURRENCY_META[to]?.name ?? to;
@@ -1409,12 +1413,17 @@
     const tmp = fromSelect.value;
     fromSelect.value = toSelect.value;
     toSelect.value = tmp;
-    hideResults();
-    convertBtn.disabled = !hasAmount();
-    amountInput.focus();
     swapBtn.classList.remove('spinning');
     void swapBtn.offsetWidth; // force reflow so animation restarts
     swapBtn.classList.add('spinning');
+    if (lastConverted !== null && !resultBlock.classList.contains('hidden')) {
+      amountInput.value = String(lastConverted);
+      convert();
+    } else {
+      hideResults();
+      convertBtn.disabled = !hasAmount();
+      amountInput.focus();
+    }
   });
 
   document.addEventListener('touchstart', e => {
