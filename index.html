@@ -487,9 +487,7 @@
 
     .arrow-indicator:hover { color: var(--accent); }
     @keyframes spin-ccw { to { transform: rotate(-360deg); } }
-    @media (prefers-reduced-motion: no-preference) {
-      .arrow-indicator.spinning svg { animation: spin-ccw 0.35s cubic-bezier(0.2, 0, 0.4, 1) both; }
-    }
+    .arrow-indicator.spinning svg { animation: spin-ccw 0.35s cubic-bezier(0.2, 0, 0.4, 1) both; }
 
     /* ── CONVERT BUTTON ── */
     #convert-btn {
@@ -1417,7 +1415,10 @@
     void swapBtn.offsetWidth; // force reflow so animation restarts
     swapBtn.classList.add('spinning');
     if (lastConverted !== null && !resultBlock.classList.contains('hidden')) {
-      amountInput.value = String(lastConverted);
+      const formatted = formatNum(lastConverted, fromSelect.value);
+      amountInput.value = parseFloat(formatted.replace(/,/g, '')) === 0
+        ? lastConverted.toPrecision(4)
+        : formatted;
       convert();
     } else {
       hideResults();
