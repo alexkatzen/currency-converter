@@ -868,7 +868,19 @@
   const DEFAULT_CURRENCIES  = ['USD', 'EUR', 'THB', 'VND', 'TWD', 'CNY'];
   const VOLATILE_CURRENCIES = new Set(['ARS','TRY','NGN','PKR','EGP','IRR','VES','ZWL']);
   const NO_DECIMALS         = new Set(['BIF','CLP','DJF','GNF','HUF','IDR','ISK','JPY','KMF','KRW','PYG','RWF','THB','UGX','VND','VUV','XAF','XOF','XPF']);
-  const CURRENCY_SYMBOLS    = { USD:'$', EUR:'€', GBP:'£', JPY:'¥', CNY:'¥', KRW:'₩', INR:'₹', THB:'฿', VND:'₫', PHP:'₱', UAH:'₴', TRY:'₺', NGN:'₦', SAR:'﷼', IRR:'﷼', AUD:'$', CAD:'$', HKD:'$', SGD:'$', NZD:'$', TWD:'$', MXN:'$' };
+  const CURRENCY_SYMBOLS    = {
+    USD:'$',  AUD:'$',  CAD:'$',  NZD:'$',  MXN:'$',  ARS:'$',  CLP:'$',  COP:'$',  SGD:'S$', HKD:'HK$', TWD:'NT$',
+    EUR:'€',  GBP:'£',  JPY:'¥',  CNY:'¥',
+    INR:'₹',  PKR:'Rs', LKR:'Rs', NPR:'Rs', MUR:'Rs',
+    RUB:'₽',  KRW:'₩',  ILS:'₪',  THB:'฿',  TRY:'₺',  UAH:'₴',  NGN:'₦',
+    PYG:'₲',  CRC:'₡',  PHP:'₱',  LAK:'₭',  MNT:'₮',  KZT:'₸',  AZN:'₼',  GEL:'₾',
+    KHR:'៛',  AFN:'؋',  BDT:'৳',  AWG:'ƒ',  ANG:'ƒ',
+    RON:'lei', DKK:'kr', SEK:'kr', NOK:'kr', ISK:'kr',
+    CZK:'Kč', PLN:'zł', HUF:'Ft', CHF:'CHF',
+    ZAR:'R',  BRL:'R$', PEN:'S/', GTQ:'Q',  ALL:'L',  HNL:'L',  RSD:'din',
+    KWD:'KD', BHD:'BD', OMR:'OMR', SAR:'﷼', IRR:'﷼', YER:'﷼', QAR:'﷼',
+    IDR:'Rp', MYR:'RM', VND:'₫',
+  };
 
   // ── Currency metadata ──────────────────────────────────────────────
   const CURRENCY_META = {
