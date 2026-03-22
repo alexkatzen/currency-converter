@@ -868,6 +868,7 @@
   const DEFAULT_CURRENCIES  = ['USD', 'EUR', 'THB', 'VND', 'TWD', 'CNY'];
   const VOLATILE_CURRENCIES = new Set(['ARS','TRY','NGN','PKR','EGP','IRR','VES','ZWL']);
   const NO_DECIMALS         = new Set(['BIF','CLP','DJF','GNF','HUF','IDR','ISK','JPY','KMF','KRW','PYG','RWF','THB','UGX','VND','VUV','XAF','XOF','XPF']);
+  const CURRENCY_SYMBOLS    = { USD:'$', EUR:'€', GBP:'£', JPY:'¥', CNY:'¥', KRW:'₩', INR:'₹', THB:'฿', VND:'₫', PHP:'₱', UAH:'₴', TRY:'₺', NGN:'₦', SAR:'﷼', IRR:'﷼', AUD:'$', CAD:'$', HKD:'$', SGD:'$', NZD:'$', TWD:'$', MXN:'$' };
 
   // ── Currency metadata ──────────────────────────────────────────────
   const CURRENCY_META = {
@@ -1143,7 +1144,7 @@
         <span class="settings-flag">${meta.flag}</span>
         <div class="settings-row-info">
           <span class="settings-row-code">${code}</span>
-          <span class="settings-row-name">${meta.name}</span>
+          <span class="settings-row-name">${CURRENCY_SYMBOLS[code] ? CURRENCY_SYMBOLS[code] + ' ' : ''}${meta.name}</span>
         </div>
         <label class="toggle">
           <input type="checkbox" value="${code}" ${enabled.has(code) ? 'checked' : ''}>
@@ -1269,7 +1270,8 @@
     lastConverted = converted;
     resultMeta.textContent = `${formatNum(amount, from)} ${from} =`;
     resultAmount.textContent = formatNum(converted, to);
-    resultCurrency.textContent = CURRENCY_META[to]?.name ?? to;
+    const sym = CURRENCY_SYMBOLS[to];
+    resultCurrency.textContent = (sym ? sym + ' ' : '') + (CURRENCY_META[to]?.name ?? to);
     resultRate.innerHTML =
       `<span>1 ${from} = <strong>${rate.toFixed(6)}</strong> ${to}</span><span>Rates from ${formatUpdated(updatedAt)}</span>`;
     resultBlock.classList.remove('hidden');
@@ -1291,7 +1293,7 @@
       row.innerHTML = `
         <span class="flag">${meta.flag}</span>
         <span class="value">${formatNum(val, ccy)}&nbsp;&nbsp;<span class="value-code">${ccy}</span></span>
-        <span class="currency-name">${meta.name}</span>
+        <span class="currency-name">${CURRENCY_SYMBOLS[ccy] ? CURRENCY_SYMBOLS[ccy] + ' ' : ''}${meta.name}</span>
       `;
       multiGrid.appendChild(row);
     });
