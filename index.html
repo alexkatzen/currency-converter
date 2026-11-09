@@ -153,7 +153,7 @@
       color: #000;
       background: var(--accent);
       border: none;
-      border-radius: 2px;
+      border-radius: 8px;
       cursor: pointer;
       text-transform: uppercase;
       padding: 8px 14px;
@@ -205,7 +205,7 @@
       width: 100%;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 6px;
+      border-radius: 8px;
       color: var(--text);
       font-family: var(--sans);
       font-size: 16px;
@@ -342,7 +342,7 @@
       align-items: center;
       background: var(--surface);
       border: 3px solid var(--accent);
-      border-radius: 6px;
+      border-radius: 8px;
       overflow: hidden;
       transition: background 0.2s;
     }
@@ -443,7 +443,7 @@
       min-width: 0;
       background: var(--surface);
       border: 3px solid var(--border);
-      border-radius: 6px;
+      border-radius: 8px;
       color: var(--text);
       font-family: var(--sans);
       font-size: 17px;
@@ -464,13 +464,13 @@
 
     select.currency-select:focus { border-color: var(--accent); }
     main:has(#amount-input:focus) #from-select,
-    main.has-amount:not(:has(#result-block:not(.hidden))) #from-select { border-color: var(--accent); }
+    main.has-amount:not(.has-result) #from-select { border-color: var(--accent); }
     main:has(#amount-input:focus) .arrow-indicator,
-    main.has-amount:not(:has(#result-block:not(.hidden))) .arrow-indicator { color: var(--accent); }
-    main:has(#result-block:not(.hidden)) #from-select { border-color: var(--accent); }
-    main:has(#result-block:not(.hidden)) #to-select { border-color: var(--accent); }
-    main:has(#result-block:not(.hidden)) .arrow-indicator { color: var(--accent); }
-    main:has(#result-block:not(.hidden)) .amount-input-wrap { border-color: var(--border); }
+    main.has-amount:not(.has-result) .arrow-indicator { color: var(--accent); }
+    main.has-result #from-select { border-color: var(--accent); }
+    main.has-result #to-select { border-color: var(--accent); }
+    main.has-result .arrow-indicator { color: var(--accent); }
+    main.has-result .amount-input-wrap { border-color: var(--border); }
 
     .arrow-indicator {
       height: 60px;
@@ -496,7 +496,7 @@
       background: var(--accent);
       color: #000;
       border: 1px solid transparent;
-      border-radius: 6px;
+      border-radius: 8px;
       font-family: var(--sans);
       font-size: 13px;
       font-weight: 600;
@@ -512,7 +512,7 @@
 
     #convert-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     #convert-btn:active { transform: scale(0.99); background: #c8f200; }
-    main:has(#result-block:not(.hidden)) #convert-btn:not(:disabled):active {
+    main.has-result #convert-btn:not(:disabled):active {
       background: transparent;
       border-color: var(--text-mid);
       color: var(--text);
@@ -521,14 +521,14 @@
 
     @media (hover: hover) {
       #convert-btn:hover { background: #c8f200; }
-      main:has(#result-block:not(.hidden)) #convert-btn:not(:disabled):hover {
+      main.has-result #convert-btn:not(:disabled):hover {
         background: transparent;
         border-color: var(--text-mid);
         color: var(--text);
       }
     }
 
-    main:has(#result-block:not(.hidden)) #convert-btn:not(:disabled) {
+    main.has-result #convert-btn:not(:disabled) {
       background: transparent;
       border-color: var(--border);
       color: var(--text-dim);
@@ -600,7 +600,7 @@
     .volatility-warn {
       background: #1a1400;
       border: 3px solid #4a3800;
-      border-radius: 6px;
+      border-radius: 8px;
       color: #c8a000;
       font-family: var(--sans);
       font-size: 11px;
@@ -626,7 +626,7 @@
       gap: 1px;
       background: var(--border);
       border: 1px solid var(--border);
-      border-radius: 6px;
+      border-radius: 8px;
       overflow: hidden;
       margin-bottom: 28px;
     }
@@ -680,7 +680,7 @@
     .error-msg {
       background: #1a0a0a;
       border: 3px solid #4a1a1a;
-      border-radius: 6px;
+      border-radius: 8px;
       color: var(--danger);
       font-family: var(--sans);
       font-size: 12px;
@@ -750,12 +750,121 @@
     .status-dot.loading { background: #fb923c; }
     .status-dot.error   { background: var(--danger); }
 
+    /* Empty-state preview and desktop-only pieces are hidden on phones */
+    #multi-block.ghost,
+    .multi-row .rate,
+    .add-card,
+    .label-name { display: none; }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 480px) {
       :root { --header-h: 58px; }
       header { padding: 0 18px; height: 58px; }
       main { padding: 24px 16px 48px; }
       .result-amount { font-size: clamp(18px, 13vw, 50px); }
+    }
+
+    /* ── DESKTOP: controls left, results right ── */
+    @media (min-width: 1024px) {
+      main {
+        max-width: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: 440px minmax(0, 1fr);
+        overflow-x: visible;
+      }
+      .controls {
+        padding: 48px 40px;
+        border-right: 1px solid var(--border);
+      }
+      .results {
+        padding: 48px 64px;
+        min-width: 0;
+      }
+
+      /* Result */
+      .result-block { margin-bottom: 40px; }
+      .result-main { flex-direction: column; align-items: flex-start; gap: 4px; }
+      .result-amount { font-size: 88px; }
+      .result-currency { font-size: 14px; }
+      .result-rate { font-size: 13px; }
+
+      /* Other currencies as cards */
+      #multi-block.ghost { display: block; }
+      .label-code { display: none; }
+      .label-name { display: inline; }
+      .multi-grid {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 16px;
+        background: none;
+        border: none;
+        border-radius: 0;
+        overflow: visible;
+      }
+      .multi-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+          "value flag"
+          "name name";
+        align-items: center;
+        align-content: start;
+        column-gap: 10px;
+        row-gap: 10px;
+        padding: 16px 18px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+      .multi-row .flag { grid-area: flag; justify-self: end; font-size: 24px; width: auto; text-align: right; line-height: 1; }
+      .multi-row .currency-name { grid-area: name; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .multi-row .value { grid-area: value; font-size: 24px; color: var(--text-dim); }
+      .multi-row .value-code { font-size: 13px; color: var(--text-dim); }
+      /* One line: "1 € Euro = 28,562 VND" replaces the name once rates are known */
+      .multi-row .rate {
+        display: block;
+        grid-area: name;
+        font-family: var(--sans);
+        font-size: 12px;
+        color: var(--text-dim);
+      }
+      .multi-row .rate strong { font-weight: 400; color: inherit; }
+      .multi-row:has(.rate) .currency-name { display: none; }
+
+      #multi-block.ghost .multi-row {
+        background: transparent;
+        border-style: dashed;
+        border-color: #333;
+        animation: none;
+        grid-template-areas: "name flag";
+      }
+      #multi-block.ghost .multi-row .value { display: none; }
+
+      .add-card {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 72px;
+        background: none;
+        border: 1px dashed #333;
+        border-radius: 8px;
+        color: var(--text-mid);
+        font-family: var(--sans);
+        font-size: 14px;
+        cursor: pointer;
+        transition: border-color 0.2s, color 0.2s;
+      }
+      .add-card:hover { border-color: var(--text-mid); color: var(--text); }
+
+      /* Settings opens as a drawer from the right */
+      #settings-panel {
+        left: auto;
+        width: 420px;
+        border-left: 1px solid var(--border);
+        transform: translateX(100%);
+      }
+      #settings-panel.open { transform: translateX(0); }
     }
   </style>
 </head>
@@ -787,6 +896,8 @@
 </header>
 
 <main>
+
+  <div class="controls">
 
   <!-- AMOUNT -->
   <div class="amount-block">
@@ -825,6 +936,10 @@
   <!-- ERROR -->
   <div id="error-block" class="error-msg hidden"></div>
 
+  </div>
+
+  <div class="results">
+
   <!-- RESULT -->
   <div id="result-block" class="result-block hidden">
     <div class="result-meta" id="result-meta">RESULT</div>
@@ -844,6 +959,8 @@
       <span id="multi-label-amount"></span>
     </div>
     <div class="multi-grid" id="multi-grid"></div>
+  </div>
+
   </div>
 
 </main>
@@ -1100,6 +1217,10 @@
   const settingsBtn     = document.getElementById('settings-btn');
   const doneBtn         = document.getElementById('done-btn');
   const settingsError   = document.getElementById('settings-error');
+  const multiLabel      = document.getElementById('multi-label-amount');
+
+  // Desktop shows full currency names in the selects
+  const desktopMQ = window.matchMedia('(min-width: 1024px)');
 
   // ── Populate selects ───────────────────────────────────────────────
   function populateSelects() {
@@ -1176,13 +1297,20 @@
     renderCurrencyToggles();
   });
 
-  settingsBtn.addEventListener('click', () => {
+  function openSettings() {
     currencySearch.value = '';
     renderCurrencyToggles();
     settingsError.classList.add('hidden');
     headerMain.classList.add('hidden');
     headerSettings.classList.remove('hidden');
     settingsPanel.classList.add('open');
+  }
+
+  settingsBtn.addEventListener('click', openSettings);
+
+  // "+ Add currency" card (desktop)
+  multiGrid.addEventListener('click', e => {
+    if (e.target.closest('.add-card')) openSettings();
   });
 
   doneBtn.addEventListener('click', () => {
@@ -1253,12 +1381,12 @@
     convertBtn.innerHTML = '<span class="loader"></span>FETCHING';
 
     try {
-      const { rates, updatedAt } = await fetchRates();
+      const entry = await fetchRates();
+      const { rates } = entry;
 
       if (!rates[from] || !rates[to]) throw new Error(`Rate not available.`);
-      const rate = rates[to] / rates[from];
-      const converted = amount * rate;
-      showResult(amount, from, converted, to, rate, updatedAt);
+      const converted = amount * (rates[to] / rates[from]);
+      showResult(amount, from, converted, to, entry);
       showMultiGrid(amount, from, rates);
       checkVolatility(from, to);
       setStatus('ready');
@@ -1278,39 +1406,112 @@
     });
   }
 
-  function showResult(amount, from, converted, to, rate, updatedAt) {
-    lastConverted = converted;
-    resultMeta.textContent = `${formatNum(amount, from)} ${from} =`;
-    resultAmount.textContent = formatNum(converted, to);
-    const sym = CURRENCY_SYMBOLS[to];
-    resultCurrency.textContent = (sym ? sym + ' ' : '') + (CURRENCY_META[to]?.name ?? to);
-    resultRate.innerHTML =
-      `<span>1 ${from} = <strong>${rate.toFixed(6)}</strong> ${to}</span><span>Rates from ${formatUpdated(updatedAt)}</span>`;
-    resultBlock.classList.remove('hidden');
+  function currencyLabel(code) {
+    const sym = CURRENCY_SYMBOLS[code];
+    return (sym ? sym + ' ' : '') + (CURRENCY_META[code]?.name ?? code);
   }
 
-  function showMultiGrid(amount, from, rates) {
+  // Rates read in whichever direction gives a number ≥ 1
+  // (1 USD = 25,380 VND rather than 1 VND = 0.000039 USD).
+  function formatRateValue(v) {
+    const max = v >= 100 ? 0 : v >= 10 ? 2 : 4;
+    return v.toLocaleString('en-US', { minimumFractionDigits: Math.min(2, max), maximumFractionDigits: max });
+  }
+
+  // "₫ VND" — symbol before the code when the currency has one
+  function symbolCode(code) {
+    const sym = CURRENCY_SYMBOLS[code];
+    return sym ? `${sym} ${code}` : code;
+  }
+
+  // "1 $ USD = 25,618 ₫ VND"
+  function rateHTML(from, to, rates) {
+    const r = rates[to] / rates[from];
+    const [base, quote, value] = r >= 1 ? [from, to, r] : [to, from, 1 / r];
+    return `1 ${symbolCode(base)} = <strong>${formatRateValue(value)}</strong> ${symbolCode(quote)}`;
+  }
+
+  // Card version names both currencies in full: "1 € Euro = 28,562 ₫ Vietnamese Dong"
+  function cardRateHTML(from, ccy, rates) {
+    const r = rates[ccy] / rates[from];
+    const [base, quote, value] = r >= 1 ? [from, ccy, r] : [ccy, from, 1 / r];
+    return `1 ${currencyLabel(base)} = <strong>${formatRateValue(value)}</strong> ${currencyLabel(quote)}`;
+  }
+
+  function rateRowHTML(from, to, entry) {
+    return `<span>${rateHTML(from, to, entry.rates)}</span><span>Rates from ${formatUpdated(entry.updatedAt)}</span>`;
+  }
+
+  function showResult(amount, from, converted, to, entry) {
+    lastConverted = converted;
+    resultMeta.innerHTML = fromLabelHTML(`${formatNum(amount, from)} `, from);
+    resultAmount.textContent = formatNum(converted, to);
+    resultCurrency.textContent = currencyLabel(to);
+    resultRate.innerHTML = rateRowHTML(from, to, entry);
+    resultRate.classList.remove('hidden');
+    resultBlock.classList.remove('hidden');
+    mainEl.classList.add('has-result');
+  }
+
+  // Builds the other-currency rows (phone) / cards (desktop).
+  // amount === null renders the empty-state preview without amounts.
+  function renderCurrencyRows(from, amount, rates) {
     multiGrid.innerHTML = '';
-    document.getElementById('multi-label-amount').textContent = `${formatNum(amount, from)} ${from} =`;
-    const enabled = getEnabledCurrencies();
-    const targets = enabled.filter(c => c !== from && CURRENCY_META[c]);
+    const targets = getEnabledCurrencies().filter(c => c !== from && CURRENCY_META[c]);
 
     targets.forEach((ccy, i) => {
-      if (!rates[ccy]) return;
-      const val = amount * (rates[ccy] / rates[from]);
+      if (rates && !rates[ccy]) return;
       const meta = CURRENCY_META[ccy];
-      const row = document.createElement('div');
+      const val  = amount !== null ? formatNum(amount * (rates[ccy] / rates[from]), ccy) : '';
+      const row  = document.createElement('div');
       row.className = 'multi-row';
-      row.style.animationDelay = `${i * 30}ms`;
+      if (amount !== null) row.style.animationDelay = `${i * 30}ms`;
       row.innerHTML = `
         <span class="flag">${meta.flag}</span>
-        <span class="value">${formatNum(val, ccy)}&nbsp;&nbsp;<span class="value-code">${ccy}</span></span>
-        <span class="currency-name">${CURRENCY_SYMBOLS[ccy] ? CURRENCY_SYMBOLS[ccy] + ' ' : ''}${meta.name}</span>
+        <span class="value">${val}&nbsp;&nbsp;<span class="value-code">${ccy}</span></span>
+        <span class="currency-name">${currencyLabel(ccy)}</span>
+        ${rates && rates[from] ? `<span class="rate">${cardRateHTML(from, ccy, rates)}</span>` : ''}
       `;
       multiGrid.appendChild(row);
     });
 
+    const add = document.createElement('button');
+    add.type = 'button';
+    add.className = 'add-card';
+    add.innerHTML = '<span aria-hidden="true">+</span> Add currency';
+    multiGrid.appendChild(add);
+  }
+
+  // "VND =" labels: code on phones ("VND"),
+  // symbol + full name on desktop ("₫ Vietnamese Dong").
+  function fromLabelHTML(prefix, from) {
+    return `${prefix}<span class="label-code">${from}</span><span class="label-name">${currencyLabel(from)}</span> =`;
+  }
+
+  function setMultiLabel(prefix, from) {
+    multiLabel.innerHTML = fromLabelHTML(prefix, from);
+  }
+
+  function showMultiGrid(amount, from, rates) {
+    setMultiLabel(`${formatNum(amount, from)} `, from);
+    renderCurrencyRows(from, amount, rates);
+    multiBlock.classList.remove('hidden', 'ghost');
+  }
+
+  // Before converting: the result stays hidden. On desktop the right panel
+  // previews your other currencies as empty cards with their rates
+  // (the preview is hidden on phones, so they look exactly as before).
+  function renderEmptyState() {
+    const from  = fromSelect.value;
+    const rates = sessionRates && sessionRates.rates[from] ? sessionRates.rates : null;
+
+    mainEl.classList.remove('has-result');
+    resultBlock.classList.add('hidden');
+
+    setMultiLabel('', from);
+    renderCurrencyRows(from, null, rates);
     multiBlock.classList.remove('hidden');
+    multiBlock.classList.add('ghost');
   }
 
   function checkVolatility(from, to) {
@@ -1340,10 +1541,9 @@
   }
 
   function hideResults() {
-    resultBlock.classList.add('hidden');
-    multiBlock.classList.add('hidden');
     volatilityBlock.classList.add('hidden');
     errorBlock.classList.add('hidden');
+    renderEmptyState();
   }
 
   function setStatus(state) {
@@ -1428,7 +1628,7 @@
     swapBtn.classList.remove('spinning');
     void swapBtn.offsetWidth; // force reflow so animation restarts
     swapBtn.classList.add('spinning');
-    if (lastConverted !== null && !resultBlock.classList.contains('hidden')) {
+    if (lastConverted !== null && mainEl.classList.contains('has-result')) {
       const formatted = formatNum(lastConverted, fromSelect.value);
       amountInput.value = parseFloat(formatted.replace(/,/g, '')) === 0
         ? lastConverted.toPrecision(4)
@@ -1448,6 +1648,18 @@
   // ── Init ───────────────────────────────────────────────────────────
   populateSelects();
   convertBtn.disabled = true;
+  renderEmptyState();
+
+  // Desktop: load rates up front (cached copy when available) so the empty
+  // cards can show their rates. Phones keep loading rates on first Convert.
+  function preloadRatesForDesktop() {
+    if (!desktopMQ.matches || sessionRates) return;
+    fetchRates()
+      .then(() => { if (!mainEl.classList.contains('has-result')) renderEmptyState(); })
+      .catch(() => setStatus('error'));
+  }
+  preloadRatesForDesktop();
+  desktopMQ.addEventListener('change', preloadRatesForDesktop);
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
