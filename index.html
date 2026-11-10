@@ -215,24 +215,6 @@
       gap: 10px;
     }
 
-    #settings-btn {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      cursor: pointer;
-      color: var(--ink);
-      width: 30px;
-      height: 30px;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: color 0.2s, border-color 0.2s, background 0.2s;
-    }
-
-    @media (hover: hover) { #settings-btn:hover { border-color: var(--text-dim); background: var(--surface2); } }
-    #settings-btn:active { border-color: var(--text-dim); background: var(--surface2); }
-    #settings-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
     #done-btn {
       font-family: var(--sans);
@@ -412,7 +394,7 @@
       max-width: 560px;
       width: 100%;
       margin: 0 auto;
-      padding: 18px 20px 60px;
+      padding: 18px 30px 60px;
       overflow-x: hidden;
     }
 
@@ -594,9 +576,9 @@
     .settings-swap:active { color: var(--ink); border-color: var(--ink); }
     @keyframes spin-ccw { to { transform: rotate(-360deg); } }
     .spinning svg { animation: spin-ccw 0.35s cubic-bezier(0.2, 0, 0.4, 1) both; }
-    .settings-swap.spinning svg, .swap-action.spinning svg, .pair-status.spinning svg { animation-name: spin; }
+    .settings-swap.spinning svg, .header-btn.spinning svg { animation-name: spin; }
 
-    /* Current pair shown in the header; tap swaps it (the pair is changed in settings) */
+    /* Current pair shown in the header; tap opens settings */
     .pair-status {
       display: flex;
       align-items: center;
@@ -621,8 +603,8 @@
     .pair-status .flag { font-size: 18px; letter-spacing: 0; }
     .pair-status svg { color: var(--ink); }
 
-    /* Theme switch: in the header, right of settings, same box */
-    .theme-btn {
+    /* Header icon buttons (swap, theme): 30px boxes matching the pair pill */
+    .header-btn {
       width: 30px;
       height: 30px;
       padding: 0;
@@ -636,9 +618,9 @@
       cursor: pointer;
       transition: border-color 0.2s, background 0.2s;
     }
-    @media (hover: hover) { .theme-btn:hover { border-color: var(--text-dim); background: var(--surface2); } }
-    .theme-btn:active { border-color: var(--text-dim); background: var(--surface2); }
-    .theme-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+    @media (hover: hover) { .header-btn:hover { border-color: var(--text-dim); background: var(--surface2); } }
+    .header-btn:active { border-color: var(--text-dim); background: var(--surface2); }
+    .header-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
     /* Icon shows the mode a tap switches to: sun in dark mode, moon in light mode */
     .theme-btn .icon-moon { display: none; }
     :root[data-theme="light"] .theme-btn .icon-moon { display: block; }
@@ -752,26 +734,6 @@
     }
     .result-meta:hover { color: var(--text-mid); }
 
-    .swap-action {
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 6px 10px;
-      color: var(--text-mid);
-      font-family: var(--sans);
-      font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: color 0.2s, border-color 0.2s;
-    }
-    @media (hover: hover) { .swap-action:hover { color: var(--ink); border-color: var(--ink); } }
-    .swap-action:active { color: var(--ink); border-color: var(--ink); }
 
     .result-main {
       display: flex;
@@ -1102,7 +1064,7 @@
     @media (max-width: 480px) {
       :root { --header-h: 58px; }
       header { padding: 0 18px; height: 58px; }
-      main { padding: 24px 16px 48px; }
+      main { padding: 24px 26px 48px; }
       .result-amount { font-size: clamp(18px, 13vw, 50px); }
     }
 
@@ -1195,18 +1157,11 @@
 <header>
   <div class="logo"><img src="logo.svg" alt="Giá" /></div>
   <div class="header-right" id="header-main">
-    <button id="pair-status" class="pair-status" aria-label="Swap currencies"></button>
-    <button id="settings-btn" aria-label="Settings">
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <line x1="4" y1="6" x2="20" y2="6"/>
-        <line x1="4" y1="12" x2="20" y2="12"/>
-        <line x1="4" y1="18" x2="20" y2="18"/>
-        <circle cx="9" cy="6" r="2.5" fill="var(--surface)" stroke="currentColor" stroke-width="2"/>
-        <circle cx="16" cy="12" r="2.5" fill="var(--surface)" stroke="currentColor" stroke-width="2"/>
-        <circle cx="10" cy="18" r="2.5" fill="var(--surface)" stroke="currentColor" stroke-width="2"/>
-      </svg>
+    <button id="pair-status" class="pair-status" aria-label="Currency settings"></button>
+    <button id="main-swap-btn" class="header-btn" title="Swap currencies" aria-label="Swap currencies">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.4 9.4A9 9 0 0 1 12 3a9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M20.6 14.6A9 9 0 0 1 12 21a9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
     </button>
-    <button id="theme-btn" class="theme-btn" aria-label="Switch to light mode" title="Switch to light mode">
+    <button id="theme-btn" class="theme-btn header-btn" aria-label="Switch to light mode" title="Switch to light mode">
       <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10.04 3.22A9 9 0 1 0 20.78 13.96A7.6 7.6 0 0 1 10.04 3.22Z"/></svg>
       <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
     </button>
@@ -1251,10 +1206,6 @@
   <div id="result-block" class="result-block hidden">
     <div class="result-head">
       <button class="result-meta" id="result-meta" title="Enter a new amount">RESULT</button>
-      <button class="swap-action" id="swap-btn" title="Swap currencies" aria-label="Swap currencies">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M3.4 9.4A9 9 0 0 1 12 3a9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M20.6 14.6A9 9 0 0 1 12 21a9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
-        <span>Swap</span>
-      </button>
     </div>
     <div class="result-main">
       <div class="result-amount" id="result-amount">—</div>
@@ -1527,7 +1478,6 @@
   const toSelect        = document.getElementById('to-select');
   const amountInput     = document.getElementById('amount-input');
   const convertBtn      = document.getElementById('convert-btn');
-  const swapBtn         = document.getElementById('swap-btn');
   const clearBtn        = document.getElementById('clear-btn');
   const resultBlock     = document.getElementById('result-block');
   const resultAmount    = document.getElementById('result-amount');
@@ -1543,7 +1493,6 @@
   const currencyToggles = document.getElementById('currency-toggles');
   const headerMain      = document.getElementById('header-main');
   const headerSettings  = document.getElementById('header-settings');
-  const settingsBtn     = document.getElementById('settings-btn');
   const doneBtn         = document.getElementById('done-btn');
   const multiLabel      = document.getElementById('multi-label-amount');
 
@@ -1607,10 +1556,27 @@
     phProbe.textContent = `Amount in ${meta.name}`;
     ph.textContent = phProbe.getBoundingClientRect().width <= avail ? phProbe.textContent : `Amount in ${code}`;
   }
-  window.addEventListener('resize', fitPlaceholder);
+  // "Convert to US Dollar" when it fits on the button, else "Convert to USD"
+  function setConvertLabel() {
+    const code = toSelect.value, meta = CURRENCY_META[code];
+    if (!meta) return;
+    const cs = getComputedStyle(convertBtn);
+    const avail = convertBtn.clientWidth - 32; // keep 16px clear each side
+    phProbe.style.cssText = `position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap;` +
+      `font:${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily};letter-spacing:${cs.letterSpacing};text-transform:uppercase`;
+    if (!phProbe.isConnected) document.body.appendChild(phProbe);
+    phProbe.textContent = `Convert to ${meta.name}`;
+    convertBtn.textContent = (phProbe.getBoundingClientRect().width <= avail ? phProbe.textContent : `Convert to ${code}`).toUpperCase();
+  }
+  const refitLabels = () => {
+    fitPlaceholder();
+    if (!convertBtn.querySelector('.loader')) setConvertLabel();
+  };
+
+  window.addEventListener('resize', refitLabels);
   if (document.fonts) {
-    document.fonts.ready.then(fitPlaceholder);
-    document.fonts.addEventListener('loadingdone', fitPlaceholder);
+    document.fonts.ready.then(refitLabels);
+    document.fonts.addEventListener('loadingdone', refitLabels);
   }
 
   function updatePairUI() {
@@ -1619,14 +1585,14 @@
     if (!fm || !tm) return;
     pairStatus.innerHTML =
       `<span class="flag">${fm.flag}</span>${from}` +
-      `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.4 9.4A9 9 0 0 1 12 3a9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M20.6 14.6A9 9 0 0 1 12 21a9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>` +
+      `<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>` +
       `<span class="flag">${tm.flag}</span>${to}`;
-    pairStatus.setAttribute('aria-label', `Converting ${fm.name} to ${tm.name}. Swap currencies`);
-    pairStatus.title = 'Swap currencies';
+    pairStatus.setAttribute('aria-label', `Converting ${fm.name} to ${tm.name}. Open currency settings`);
+    pairStatus.title = 'Currency settings';
     amountInput.setAttribute('aria-label', `Amount in ${from}`);
     amountSymbol.textContent = CURRENCY_SYMBOLS[from] || from;
     fitPlaceholder();
-    if (!convertBtn.querySelector('.loader')) convertBtn.textContent = `CONVERT TO ${to}`;
+    if (!convertBtn.querySelector('.loader')) setConvertLabel();
   }
 
   // ── Populate selects ───────────────────────────────────────────────
@@ -1786,7 +1752,8 @@
     settingsPanel.classList.add('open');
   }
 
-  settingsBtn.addEventListener('click', openSettings);
+  // The pair in the header is the way into settings (there's no separate settings button)
+  pairStatus.addEventListener('click', openSettings);
 
   doneBtn.addEventListener('click', () => {
     headerSettings.classList.add('hidden');
@@ -1867,7 +1834,7 @@
     } finally {
       if (!live) fetchingCount--;
       if (fetchingCount === 0) {
-        convertBtn.textContent = `CONVERT TO ${toSelect.value}`;
+        setConvertLabel();
         convertBtn.disabled = !hasAmount();
       }
     }
@@ -2152,8 +2119,8 @@
     }
   }
 
-  swapBtn.addEventListener('click', () => swapAndConvert(swapBtn));
-  pairStatus.addEventListener('click', () => swapAndConvert(pairStatus));
+  const mainSwapBtn = document.getElementById('main-swap-btn');
+  mainSwapBtn.addEventListener('click', () => swapAndConvert(mainSwapBtn));
 
   // Tap a currency card / row to make it the main result (the TO currency).
   // The "+ Add currency" card opens settings.
