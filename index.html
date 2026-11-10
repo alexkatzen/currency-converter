@@ -4,6 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0a0a0a" />
+  <script>
+    // Theme before first paint: saved choice, else follow the device
+    (function () {
+      var t; try { t = localStorage.getItem('xchg_theme'); } catch (e) {}
+      if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      var bg = t === 'light' ? '#fafafa' : '#0a0a0a', d = document.documentElement;
+      d.dataset.theme = t; d.style.background = bg;
+      var m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = bg;
+    })();
+  </script>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <!-- iOS splash screens -->
@@ -37,6 +47,16 @@
       font-display: swap;
       src: url('fonts/space-grotesk.woff2') format('woff2');
     }
+    /* Currency symbols missing from Space Grotesk/Outfit (₫ ₩ ₹ ₽ ฿ …), so they
+       don't fall back to mismatched system fonts. Inter subset, wght 300–600. */
+    @font-face {
+      font-family: 'Currency Symbols';
+      font-style: normal;
+      font-weight: 300 600;
+      font-display: swap;
+      src: url('fonts/inter-currency.woff2') format('woff2');
+      unicode-range: U+0192, U+010D, U+0142, U+0E3F, U+20A1, U+20A6, U+20A9, U+20AA, U+20AB, U+20AD, U+20AE, U+20B1, U+20B2, U+20B4, U+20B8, U+20B9, U+20BA, U+20BC, U+20BD, U+20BE;
+    }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
@@ -48,11 +68,70 @@
       --text: #e8e8e8;
       --text-dim: #666;
       --text-mid: #999;
-      --accent: #d4ff00;
+      --accent: #d4ff00;          /* lime: fills (buttons, tags, toggles) */
+      --accent-hover: #c8f200;
+      --ink: #d4ff00;             /* "accent" when used as text/lines; black in light mode */
       --danger: #ff4444;
-      --display: 'Space Grotesk', sans-serif;
-      --sans: 'Outfit', sans-serif;
+      --header-bg: var(--bg);
+      --field-border-w: 3px;
+      --ctl-border-w: 3px;        /* pulldowns + settings swap */
+      --focus-dim: #666;          /* symbol/placeholder on the white focused field */
+      --clear-bg: #3a3a3a;
+      --clear-fg: #fff;
+      --grabber: #3a3a3a;
+      --ghost-border: #333;
+      --sheet-shadow: rgba(0,0,0,0.6);
+      --toggle-off-track: var(--surface2);
+      --toggle-off-border: var(--border);
+      --toggle-off-knob: var(--text-dim);
+      --toggle-off-knob-shadow: none;
+      --toggle-on-track: var(--accent);
+      --toggle-on-border: var(--accent);
+      --toggle-on-knob: #000;
+      --tag-bg: transparent;
+      --tag-fg: var(--accent);
+      --warn-bg: #1a1400; --warn-border: #4a3800; --warn-fg: #c8a000;
+      --error-bg: #1a0a0a; --error-border: #4a1a1a;
+      --display: 'Space Grotesk', 'Currency Symbols', sans-serif;
+      --sans: 'Outfit', 'Currency Symbols', sans-serif;
     }
+
+    /* ── LIGHT THEME: lime only as a fill; anything that was lime text/lines is black ── */
+    :root[data-theme="light"] {
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --surface2: #ededed;
+      --border: #c4c4c4;
+      --text: #1a1a1a;
+      --text-dim: #777;
+      --text-mid: #4d4d4d;
+      --ink: #1a1a1a;
+      --danger: #d32f2f;
+      --header-bg: #ffffff;
+      --field-border-w: 2px;
+      --ctl-border-w: 1px;
+      --focus-dim: #777;
+      --focus-border: var(--ink);
+      --clear-bg: #ededed;
+      --clear-fg: #4d4d4d;
+      --grabber: #d6d6d6;
+      --ghost-border: #c4c4c4;
+      --sheet-shadow: rgba(0,0,0,0.08);
+      --toggle-off-track: #e0e0e0;
+      --toggle-off-border: transparent;
+      --toggle-off-knob: #ffffff;
+      --toggle-off-knob-shadow: 0 1px 2px rgba(0,0,0,0.15);
+      --toggle-on-track: #4d4d4d;
+      --toggle-on-border: transparent;
+      --toggle-on-knob: #ffffff;
+      --tag-bg: var(--accent);
+      --tag-fg: #000;
+      --warn-bg: #fff8dc; --warn-border: #f0d77a; --warn-fg: #7a5b00;
+      --error-bg: #fff0f0; --error-border: #f5c2c2;
+      color-scheme: light;
+    }
+    :root[data-theme="light"] .logo img { filter: brightness(0); }
+    :root[data-theme="light"] .result-amount { font-weight: 400; }
 
     html, body {
       background: var(--bg);
@@ -83,7 +162,7 @@
       background: var(--bg);
       transform: translateY(100%);
       transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-      z-index: 10;
+      z-index: 70; /* above the results sheet */
     }
 
     #settings-panel.open {
@@ -101,7 +180,7 @@
       border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
-      background: var(--bg);
+      background: var(--header-bg);
       z-index: 100;
     }
 
@@ -111,39 +190,37 @@
       gap: 1px;
     }
     .logo img {
-      height: 18px;
+      height: 19.8px;
       width: auto;
       display: block;
-    }
-    .logo span {
-      font-family: var(--sans);
-      font-size: 13px;
-      font-weight: 400;
-      color: var(--text-dim);
-      letter-spacing: 0.08em;
-      margin-left: 5px;
       position: relative;
-      top: 4px;
+      top: 0;
     }
 
     .header-right {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 10px;
     }
 
     #settings-btn {
-      background: none;
-      border: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
       cursor: pointer;
-      color: var(--text-dim);
-      padding: 4px;
+      color: var(--ink);
+      width: 30px;
+      height: 30px;
+      padding: 0;
       display: flex;
       align-items: center;
-      transition: color 0.2s;
+      justify-content: center;
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
     }
 
-    #settings-btn:hover { color: var(--text); }
+    @media (hover: hover) { #settings-btn:hover { border-color: var(--text-dim); background: var(--surface2); } }
+    #settings-btn:active { border-color: var(--text-dim); background: var(--surface2); }
+    #settings-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
     #done-btn {
       font-family: var(--sans);
@@ -159,7 +236,7 @@
       padding: 8px 14px;
     }
 
-    #done-btn:hover { background: #c8f200; }
+    #done-btn:hover { background: var(--accent-hover); }
 
     .settings-footer {
       margin-top: 24px;
@@ -252,7 +329,7 @@
       font-family: var(--sans);
       font-size: 14px;
       font-weight: 500;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.02em;
       color: var(--text);
       display: block;
     }
@@ -264,6 +341,15 @@
       display: block;
       margin-top: 2px;
     }
+
+    .settings-row-rate {
+      font-family: var(--sans);
+      font-size: 11px;
+      color: var(--text-dim);
+      display: block;
+      margin-top: 2px;
+    }
+    .settings-row-rate strong { font-weight: 400; color: inherit; }
 
     /* ── TOGGLE SWITCH ── */
     .toggle {
@@ -284,8 +370,8 @@
     .toggle-slider {
       position: absolute;
       inset: 0;
-      background: var(--surface2);
-      border: 1px solid var(--border);
+      background: var(--toggle-off-track);
+      border: 1px solid var(--toggle-off-border);
       border-radius: 13px;
       transition: background 0.2s, border-color 0.2s;
     }
@@ -297,19 +383,21 @@
       height: 20px;
       left: 3px;
       top: 2px;
-      background: var(--text-dim);
+      background: var(--toggle-off-knob);
+      box-shadow: var(--toggle-off-knob-shadow);
       border-radius: 50%;
       transition: transform 0.2s, background 0.2s;
     }
 
     .toggle input:checked + .toggle-slider {
-      background: var(--accent);
-      border-color: var(--accent);
+      background: var(--toggle-on-track);
+      border-color: var(--toggle-on-border);
     }
 
     .toggle input:checked + .toggle-slider::before {
       transform: translateX(18px);
-      background: #000;
+      background: var(--toggle-on-knob);
+      box-shadow: none;
     }
 
     /* ── MAIN ── */
@@ -324,7 +412,7 @@
 
     /* ── AMOUNT INPUT ── */
     .amount-block {
-      margin-bottom: 14px;
+      margin-bottom: 24px;
     }
 
     .field-label {
@@ -341,16 +429,31 @@
       display: flex;
       align-items: center;
       background: var(--surface);
-      border: 3px solid var(--accent);
+      border: var(--field-border-w) solid var(--ink);
       border-radius: 8px;
       overflow: hidden;
-      transition: background 0.2s;
+      transition: background 0.2s, box-shadow 0.2s;
     }
 
     .amount-input-wrap:focus-within {
       background: #fff;
-      border-color: #fff;
+      border-color: var(--focus-border, #fff);
     }
+
+
+    #amount-symbol {
+      flex-shrink: 0;
+      padding-left: 18px;
+      font-family: var(--display);
+      font-size: clamp(16px, 5vw, 22px);
+      font-weight: 500;
+      color: var(--text-dim);
+      transition: color 0.2s;
+    }
+    #amount-symbol:empty { display: none; }
+    .amount-input-wrap:focus-within #amount-symbol { color: var(--focus-dim); }
+    #amount-symbol:not(:empty) + .input-field #amount-input,
+    #amount-symbol:not(:empty) + .input-field #amount-placeholder { padding-left: 10px; }
 
     .input-field {
       flex: 1;
@@ -358,7 +461,7 @@
       display: flex;
       align-items: center;
       min-width: 0;
-      height: 56px;
+      height: calc(62px - 2 * var(--field-border-w));
     }
 
     #amount-input {
@@ -366,7 +469,7 @@
       background: transparent;
       border: none;
       outline: none;
-      color: var(--text);
+      color: var(--ink);
       font-family: var(--display);
       font-size: clamp(16px, 5vw, 26px);
       font-weight: 300;
@@ -383,7 +486,7 @@
 
     #amount-placeholder {
       position: absolute;
-      inset: 0;
+      inset: 0 -42px 0 0; /* run under the clear button's slot: it's only shown once there's a value */
       display: flex;
       align-items: center;
       padding: 0 18px;
@@ -393,11 +496,12 @@
       font-weight: 600;
       letter-spacing: 0.15em;
       text-transform: uppercase;
-      color: var(--accent);
+      white-space: nowrap;
+      color: var(--ink);
       transition: color 0.2s;
     }
 
-    .amount-input-wrap:focus-within #amount-placeholder { color: rgba(0,0,0,0.4); }
+    .amount-input-wrap:focus-within #amount-placeholder { color: var(--focus-dim); }
 
     #clear-btn {
       flex-shrink: 0;
@@ -408,8 +512,8 @@
       pointer-events: none;
       border-radius: 50%;
       border: none;
-      background: #3a3a3a;
-      color: #fff;
+      background: var(--clear-bg);
+      color: var(--clear-fg);
       font-size: 13px;
       line-height: 1;
       cursor: pointer;
@@ -423,14 +527,14 @@
     .amount-input-wrap:focus-within #clear-btn { background: rgba(0,0,0,0.15); color: #fff; }
     .amount-input-wrap:focus-within #clear-btn:hover { background: rgba(0,0,0,0.25); }
 
-    /* ── CURRENCY PAIR ── */
-    .currency-grid {
-      display: grid;
-      grid-template-columns: 1fr 48px 1fr;
-      gap: 0;
-      align-items: end;
-      margin-bottom: 28px;
+    /* ── CURRENCY PAIR (lives in settings) ── */
+    .pair-settings {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
+    .settings-swap + .currency-select-wrap { margin-top: -20px; }
+    .currency-select-wrap .field-label { color: var(--text-mid); }
 
     .currency-select-wrap {
       display: flex;
@@ -442,7 +546,7 @@
       width: 100%;
       min-width: 0;
       background: var(--surface);
-      border: 3px solid var(--border);
+      border: var(--ctl-border-w) solid var(--border);
       border-radius: 8px;
       color: var(--text);
       font-family: var(--sans);
@@ -462,37 +566,109 @@
       transition: border-color 0.2s;
     }
 
-    select.currency-select:focus { border-color: var(--accent); }
-    main:has(#amount-input:focus) #from-select,
-    main.has-amount:not(.has-result) #from-select { border-color: var(--accent); }
-    main:has(#amount-input:focus) .arrow-indicator,
-    main.has-amount:not(.has-result) .arrow-indicator { color: var(--accent); }
-    main.has-result #from-select { border-color: var(--accent); }
-    main.has-result #to-select { border-color: var(--accent); }
-    main.has-result .arrow-indicator { color: var(--accent); }
+    select.currency-select:focus { border-color: var(--ink); }
     main.has-result .amount-input-wrap { border-color: var(--border); }
 
-    .arrow-indicator {
-      height: 60px;
-      color: var(--text-dim);
+    /* Swap button between FROM and TO in settings: the app's arrow, pointing down */
+    .settings-swap {
+      align-self: center;
+      width: 40px;
+      height: 40px;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: transparent;
-      border: none;
+      background: var(--surface);
+      border: var(--ctl-border-w) solid var(--border);
+      border-radius: 50%;
+      color: var(--text-mid);
       cursor: pointer;
-      padding: 0 4px;
-      transition: color 0.2s;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    @media (hover: hover) { .settings-swap:hover { color: var(--ink); border-color: var(--ink); } }
+    .settings-swap:active { color: var(--ink); border-color: var(--ink); }
+    @keyframes spin-ccw { to { transform: rotate(-360deg); } }
+    .spinning svg { animation: spin-ccw 0.35s cubic-bezier(0.2, 0, 0.4, 1) both; }
+    .settings-swap.spinning svg, .swap-action.spinning svg { animation-name: spin; }
+
+    /* Current pair shown as status in the header; tap opens settings */
+    .pair-status {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      height: 30px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0 12px;
+      cursor: pointer;
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      color: var(--ink);
+      transition: border-color 0.2s, background 0.2s;
+    }
+    /* same box and states as the settings button beside it */
+    @media (hover: hover) { .pair-status:hover { border-color: var(--text-dim); background: var(--surface2); } }
+    .pair-status:active { border-color: var(--text-dim); background: var(--surface2); }
+    .pair-status:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+    .pair-status .flag { font-size: 18px; letter-spacing: 0; }
+    .pair-status svg { color: var(--ink); }
+
+    /* Theme switch: in the header, right of settings, same box */
+    .theme-btn {
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--ink);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    @media (hover: hover) { .theme-btn:hover { border-color: var(--text-dim); background: var(--surface2); } }
+    .theme-btn:active { border-color: var(--text-dim); background: var(--surface2); }
+    .theme-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+    /* Icon shows the mode a tap switches to: sun in dark mode, moon in light mode */
+    .theme-btn .icon-moon { display: none; }
+    :root[data-theme="light"] .theme-btn .icon-moon { display: block; }
+    :root[data-theme="light"] .theme-btn .icon-sun { display: none; }
+
+    .settings-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 28px 0;
     }
 
-    .arrow-indicator:hover { color: var(--accent); }
-    @keyframes spin-ccw { to { transform: rotate(-360deg); } }
-    .arrow-indicator.spinning svg { animation: spin-ccw 0.35s cubic-bezier(0.2, 0, 0.4, 1) both; }
+    .settings-help {
+      font-family: var(--sans);
+      font-size: 12px;
+      color: var(--text-dim);
+      margin: -8px 0 16px;
+    }
+
+    /* FROM / TO rows in the currency list show a tag instead of a toggle */
+    .role-tag {
+      flex-shrink: 0;
+      font-family: var(--sans);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      color: var(--tag-fg);
+      background: var(--tag-bg);
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 4px 8px;
+    }
 
     /* ── CONVERT BUTTON ── */
     #convert-btn {
       width: 100%;
-      height: 52px;
+      height: 62px;
       background: var(--accent);
       color: #000;
       border: 1px solid transparent;
@@ -510,8 +686,8 @@
       box-shadow: none;
     }
 
-    #convert-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-    #convert-btn:active { transform: scale(0.99); background: #c8f200; }
+    #convert-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+    #convert-btn:active { transform: scale(0.99); background: var(--accent-hover); }
     main.has-result #convert-btn:not(:disabled):active {
       background: transparent;
       border-color: var(--text-mid);
@@ -520,7 +696,7 @@
     #convert-btn:disabled { background: var(--surface2); color: var(--text-dim); cursor: not-allowed; }
 
     @media (hover: hover) {
-      #convert-btn:hover { background: #c8f200; }
+      #convert-btn:hover { background: var(--accent-hover); }
       main.has-result #convert-btn:not(:disabled):hover {
         background: transparent;
         border-color: var(--text-mid);
@@ -547,14 +723,49 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
+    .result-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
     .result-meta {
       font-family: var(--sans);
       font-size: 10px;
       letter-spacing: 0.12em;
       color: var(--text-dim);
       text-transform: uppercase;
-      margin-bottom: 12px;
+      background: none;
+      border: none;
+      padding: 0;
+      text-align: left;
+      cursor: pointer;
+      min-width: 0;
     }
+    .result-meta:hover { color: var(--text-mid); }
+
+    .swap-action {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      color: var(--text-mid);
+      font-family: var(--sans);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    @media (hover: hover) { .swap-action:hover { color: var(--ink); border-color: var(--ink); } }
+    .swap-action:active { color: var(--ink); border-color: var(--ink); }
 
     .result-main {
       display: flex;
@@ -567,10 +778,19 @@
       font-family: var(--display);
       font-size: clamp(20px, 8vw, 50px);
       font-weight: 300;
-      color: var(--accent);
+      color: var(--ink);
       letter-spacing: -0.02em;
       line-height: 1;
       word-break: break-all;
+    }
+
+    /* Price-tag symbol: half height, grey, riding near the top of the number */
+    .result-sym {
+      font-size: 0.5em;
+      font-weight: 500;
+      color: var(--text-dim);
+      vertical-align: 0.7em;
+      letter-spacing: 0;
     }
 
     .result-currency {
@@ -598,10 +818,10 @@
 
     /* ── VOLATILITY WARNING ── */
     .volatility-warn {
-      background: #1a1400;
-      border: 3px solid #4a3800;
+      background: var(--warn-bg);
+      border: 3px solid var(--warn-border);
       border-radius: 8px;
-      color: #c8a000;
+      color: var(--warn-fg);
       font-family: var(--sans);
       font-size: 11px;
       padding: 10px 18px;
@@ -635,8 +855,9 @@
       display: flex;
       align-items: center;
       background: var(--surface);
-      padding: 8px 18px;
-      gap: 14px;
+      padding: 12px 16px;
+      gap: 10px;
+      min-height: 56px;
       transition: background 0.15s;
       animation: slideIn 0.2s ease both;
       overflow: hidden;
@@ -644,17 +865,81 @@
     }
 
 
+    /* [€ 3.49] [Euro] <------> [1 EUR = 28,616 VND] [flag] — same on phone and desktop */
     .multi-row .value {
+      order: 1;
+      flex: none;
       font-family: var(--display);
-      font-size: clamp(12px, 3.5vw, 16px);
+      font-size: 19px;
       font-weight: 400;
-      color: var(--text);
+      color: var(--ink);
+      white-space: nowrap;
+      min-width: var(--val-w, 0);
+    }
+    /* same pattern as the main result: grey symbol, green amount */
+    .multi-row .value-sym {
+      display: inline-block;
+      min-width: var(--sym-w, 0);
+      margin-right: calc(0.3em + 2px);
+      text-align: right;
+      color: var(--text-dim);
+      font-weight: 500;
+      /* price-tag style, like the main result: smaller and riding high */
+      font-size: 0.75em;
+      vertical-align: calc(0.35em - 2px);
+    }
+    .multi-row .value-code,
+    .multi-row .currency-name { display: none; }
+    .multi-row .plain-name {
+      order: 2;
       flex: 1;
       min-width: 0;
-      white-space: nowrap;
+      font-family: var(--sans);
+      font-size: 13px;
+      color: var(--text-mid);
       overflow: hidden;
       text-overflow: ellipsis;
+      white-space: nowrap;
     }
+    .multi-row .rate {
+      order: 3;
+      flex-shrink: 0;
+      font-family: var(--sans);
+      font-size: 11px;
+      color: var(--text-dim);
+      text-align: right;
+      white-space: nowrap;
+    }
+    .multi-row .rate strong { font-weight: 400; color: inherit; }
+    .multi-row .rate-full,
+    .multi-row .current-tag { display: none; }
+
+    /* ── EMPTY STATE: "Conversion rates" list (desktop only; hidden on phones), rate only ── */
+    #multi-block.ghost .multi-grid { background: none; }
+    #multi-block.ghost .multi-row {
+      background: transparent;
+      animation: none;
+      padding-top: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    #multi-block.ghost .multi-row .value,
+    #multi-block.ghost .multi-row .plain-name,
+    #multi-block.ghost .multi-row .rate { display: none; }
+    #multi-block.ghost .multi-row .rate-full {
+      display: block;
+      order: 3;
+      flex: 1;
+      min-width: 0;
+      font-family: var(--sans);
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+    #multi-block.ghost .multi-row .rate-full strong { font-weight: 400; color: inherit; }
+    /* The pair Convert will use: brighter text, green rate and a CURRENT tag */
+    #multi-block.ghost .multi-row.current .rate-full { color: var(--text); }
+    #multi-block.ghost .multi-row.current .rate-full strong { color: var(--ink); }
+    #multi-block.ghost .multi-row .current-tag { display: block; order: 3; margin-left: 12px; }
 
 
     .multi-row .value-code {
@@ -670,16 +955,18 @@
     }
 
     .multi-row .flag {
-      font-size: 36px;
-      width: 42px;
+      order: 4;
+      font-size: 26px;
+      width: 30px;
       flex-shrink: 0;
       text-align: center;
+      margin-left: 2px;
     }
 
     /* ── ERROR ── */
     .error-msg {
-      background: #1a0a0a;
-      border: 3px solid #4a1a1a;
+      background: var(--error-bg);
+      border: 3px solid var(--error-border);
       border-radius: 8px;
       color: var(--danger);
       font-family: var(--sans);
@@ -727,34 +1014,94 @@
       #rotate-notice { display: flex; }
     }
 
-    /* ── STATUS PILL ── */
-    .status-pill {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-family: var(--sans);
-      font-size: 11px;
-      color: var(--text-mid);
-      letter-spacing: 0.05em;
-    }
-
-    .status-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 3px;
-      background: var(--text-dim);
-      transition: background 0.3s;
-    }
-
-    .status-dot.ready   { background: var(--accent); }
-    .status-dot.loading { background: #fb923c; }
-    .status-dot.error   { background: var(--danger); }
-
     /* Empty-state preview and desktop-only pieces are hidden on phones */
     #multi-block.ghost,
-    .multi-row .rate,
     .add-card,
     .label-name { display: none; }
+
+    /* Currency rows / cards: tap to make that currency the main result */
+    .multi-row[data-code] { cursor: pointer; }
+    .multi-row.static { animation: none; }
+
+    /* ── RESULTS SHEET (phones and tablets) ── */
+    #sheet-backdrop { display: none; }
+    @media (max-width: 1023px) {
+      .results {
+        position: fixed;
+        top: var(--sheet-top, calc(var(--header-h) + 8px));
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 50;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        border-radius: 20px 20px 0 0;
+        box-shadow: 0 -8px 24px var(--sheet-shadow);
+        padding: 10px 16px 48px;
+        transform: translateY(100%);
+        visibility: hidden;
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear 0.35s;
+      }
+      main.has-result .results {
+        transform: translateY(0);
+        visibility: visible;
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s;
+      }
+      .results > * { max-width: 560px; margin-left: auto; margin-right: auto; }
+
+      #sheet-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        background: rgba(0,0,0,0.6);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+      /* partial sheet: no dimming, the amount above stays usable */
+      body.sheet-open { overflow: hidden; }
+
+      .sheet-top {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 30px;
+        margin-bottom: -1px;
+      }
+      .sheet-grabber {
+        width: 36px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--grabber);
+      }
+      .results .result-block { animation: none; }
+      .results .result-meta,
+      .results .multi-label {
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.15em;
+        color: var(--text-mid);
+      }
+      .results .result-meta { font-size: 13px; }
+      .results .multi-row { background: var(--bg); }
+      /* Phones: [€ 3.49] [Euro] ... [flag] — rates live in settings instead */
+      .results .multi-row {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-areas: "value name flag";
+        align-items: center;
+        column-gap: 10px;
+      }
+      .results .multi-row .value { grid-area: value; }
+      .results .multi-row .plain-name { grid-area: name; }
+      .results .multi-row .rate { display: none; }
+      .results .multi-row .flag { grid-area: flag; margin-left: 0; }
+      .results .result-amount { font-size: clamp(40px, 16vw, 64px); }
+    }
 
     /* ── RESPONSIVE ── */
     @media (max-width: 480px) {
@@ -762,6 +1109,14 @@
       header { padding: 0 18px; height: 58px; }
       main { padding: 24px 16px 48px; }
       .result-amount { font-size: clamp(18px, 13vw, 50px); }
+    }
+
+    /* Narrow phones (iPhone SE 1st gen etc.): tighten the header so pair + 2 buttons fit */
+    @media (max-width: 360px) {
+      header { padding: 0 14px; }
+      .header-right { gap: 6px; }
+      .pair-status { padding: 0 8px; gap: 6px; font-size: 14px; letter-spacing: 0.04em; }
+      .pair-status .flag { font-size: 16px; }
     }
 
     /* ── DESKTOP: controls left, results right ── */
@@ -785,77 +1140,47 @@
 
       /* Result */
       .result-block { margin-bottom: 40px; }
-      .result-main { flex-direction: column; align-items: flex-start; gap: 4px; }
+      .result-meta { font-size: 14px; }
+      .result-main { gap: 16px; }
       .result-amount { font-size: 88px; }
       .result-currency { font-size: 14px; }
       .result-rate { font-size: 13px; }
 
-      /* Other currencies as cards */
+      /* Other currencies: one list of rows.
+         [amount] [€ Euro] <------> [1 EUR = 28,616 VND] [flag] */
       #multi-block.ghost { display: block; }
       .label-code { display: none; }
       .label-name { display: inline; }
-      .multi-grid {
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 16px;
-        background: none;
-        border: none;
-        border-radius: 0;
-        overflow: visible;
-      }
-      .multi-row {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        grid-template-areas:
-          "value flag"
-          "name name";
-        align-items: center;
-        align-content: start;
-        column-gap: 10px;
-        row-gap: 10px;
-        padding: 16px 18px;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-      }
-      .multi-row .flag { grid-area: flag; justify-self: end; font-size: 24px; width: auto; text-align: right; line-height: 1; }
-      .multi-row .currency-name { grid-area: name; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .multi-row .value { grid-area: value; font-size: 24px; color: var(--text-dim); }
-      .multi-row .value-code { font-size: 13px; color: var(--text-dim); }
-      /* One line: "1 € Euro = 28,562 VND" replaces the name once rates are known */
-      .multi-row .rate {
-        display: block;
-        grid-area: name;
-        font-family: var(--sans);
-        font-size: 12px;
-        color: var(--text-dim);
-      }
-      .multi-row .rate strong { font-weight: 400; color: inherit; }
-      .multi-row:has(.rate) .currency-name { display: none; }
+      .multi-row { padding: 14px 20px; gap: 12px; min-height: 64px; }
+      .multi-row .value { font-size: 20px; }
+      .multi-row .plain-name { font-size: 14px; }
+      .multi-row .rate { font-size: 13px; }
+      .multi-row .flag { font-size: 28px; width: 36px; margin-left: 8px; }
+      .multi-row[data-code]:hover { background: var(--surface2); }
 
-      #multi-block.ghost .multi-row {
-        background: transparent;
-        border-style: dashed;
-        border-color: #333;
-        animation: none;
-        grid-template-areas: "name flag";
-      }
-      #multi-block.ghost .multi-row .value { display: none; }
+      /* Empty state on desktop: one line, larger */
+      #multi-block.ghost .multi-row .rate-full { font-size: 17px; white-space: nowrap; }
 
+      /* Last row: add a currency */
       .add-card {
         display: flex;
         align-items: center;
-        justify-content: center;
-        gap: 8px;
-        min-height: 72px;
-        background: none;
-        border: 1px dashed #333;
-        border-radius: 8px;
+        gap: 16px;
+        padding: 16px 20px;
+        background: var(--surface);
+        border: none;
         color: var(--text-mid);
         font-family: var(--sans);
         font-size: 14px;
+        text-align: left;
         cursor: pointer;
-        transition: border-color 0.2s, color 0.2s;
+        transition: background 0.15s, color 0.2s;
       }
-      .add-card:hover { border-color: var(--text-mid); color: var(--text); }
+      .add-card span { font-size: 20px; line-height: 1; }
+      .add-card:hover { background: var(--surface2); color: var(--text); }
+      #multi-block.ghost .add-card { background: transparent; }
+
+      .sheet-top { display: none; }
 
       /* Settings opens as a drawer from the right */
       #settings-panel {
@@ -873,21 +1198,22 @@
 <div id="rotate-notice"><span>⟳</span>Please rotate your phone</div>
 
 <header>
-  <div class="logo"><img src="logo.svg" alt="Giá" /><span>.exchange</span></div>
+  <div class="logo"><img src="logo.svg" alt="Giá" /></div>
   <div class="header-right" id="header-main">
-    <div class="status-pill">
-      <div class="status-dot ready" id="status-dot"></div>
-      <span id="status-text">READY</span>
-    </div>
+    <button id="pair-status" class="pair-status" aria-label="Swap currencies"></button>
     <button id="settings-btn" aria-label="Settings">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
         <line x1="4" y1="6" x2="20" y2="6"/>
         <line x1="4" y1="12" x2="20" y2="12"/>
         <line x1="4" y1="18" x2="20" y2="18"/>
-        <circle cx="9" cy="6" r="2.5" fill="var(--bg)" stroke="currentColor" stroke-width="2"/>
-        <circle cx="16" cy="12" r="2.5" fill="var(--bg)" stroke="currentColor" stroke-width="2"/>
-        <circle cx="10" cy="18" r="2.5" fill="var(--bg)" stroke="currentColor" stroke-width="2"/>
+        <circle cx="9" cy="6" r="2.5" fill="var(--surface)" stroke="currentColor" stroke-width="2"/>
+        <circle cx="16" cy="12" r="2.5" fill="var(--surface)" stroke="currentColor" stroke-width="2"/>
+        <circle cx="10" cy="18" r="2.5" fill="var(--surface)" stroke="currentColor" stroke-width="2"/>
       </svg>
+    </button>
+    <button id="theme-btn" class="theme-btn" aria-label="Switch to light mode" title="Switch to light mode">
+      <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10.04 3.22A9 9 0 1 0 20.78 13.96A7.6 7.6 0 0 1 10.04 3.22Z"/></svg>
+      <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
     </button>
   </div>
   <div class="header-right hidden" id="header-settings">
@@ -901,32 +1227,13 @@
 
   <!-- AMOUNT -->
   <div class="amount-block">
-    <div class="field-label">Amount</div>
     <div class="amount-input-wrap">
+      <span id="amount-symbol" aria-hidden="true"></span>
       <div class="input-field">
         <input type="text" inputmode="decimal" id="amount-input" autocomplete="off" />
-        <span id="amount-placeholder">Enter amount</span>
+        <span id="amount-placeholder">Amount</span>
       </div>
       <button id="clear-btn" aria-label="Clear amount"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 1.5L10.5 10.5M10.5 1.5L1.5 10.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
-    </div>
-  </div>
-
-  <!-- CURRENCY PAIR -->
-  <div class="currency-grid">
-    <div class="currency-select-wrap">
-      <div class="field-label">From</div>
-      <select id="from-select" class="currency-select"></select>
-    </div>
-
-    <button class="arrow-indicator" id="swap-btn" title="Swap currencies" aria-label="Swap currencies">
-      <svg width="28" height="28" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
-
-    <div class="currency-select-wrap">
-      <div class="field-label">To</div>
-      <select id="to-select" class="currency-select"></select>
     </div>
   </div>
 
@@ -938,11 +1245,22 @@
 
   </div>
 
-  <div class="results">
+  <div class="results" id="results">
+
+  <!-- SHEET HANDLE (phone) -->
+  <div class="sheet-top" id="sheet-top">
+    <span class="sheet-grabber"></span>
+  </div>
 
   <!-- RESULT -->
   <div id="result-block" class="result-block hidden">
-    <div class="result-meta" id="result-meta">RESULT</div>
+    <div class="result-head">
+      <button class="result-meta" id="result-meta" title="Enter a new amount">RESULT</button>
+      <button class="swap-action" id="swap-btn" title="Swap currencies" aria-label="Swap currencies">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M3.4 9.4A9 9 0 0 1 12 3a9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M20.6 14.6A9 9 0 0 1 12 21a9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+        <span>Swap</span>
+      </button>
+    </div>
     <div class="result-main">
       <div class="result-amount" id="result-amount">—</div>
       <div class="result-currency" id="result-currency">—</div>
@@ -965,9 +1283,29 @@
 
 </main>
 
+<div id="sheet-backdrop"></div>
+
 <div id="settings-panel">
   <div class="settings-content">
-    <div class="settings-section-label">Currencies</div>
+    <div class="settings-section-label">Converting</div>
+    <div class="pair-settings">
+      <div class="currency-select-wrap">
+        <div class="field-label">From</div>
+        <select id="from-select" class="currency-select"></select>
+      </div>
+      <button class="settings-swap" id="settings-swap-btn" title="Swap currencies" aria-label="Swap currencies">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M3.4 9.4A9 9 0 0 1 12 3a9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M20.6 14.6A9 9 0 0 1 12 21a9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+      </button>
+      <div class="currency-select-wrap">
+        <div class="field-label">To</div>
+        <select id="to-select" class="currency-select"></select>
+      </div>
+    </div>
+
+    <div class="settings-divider"></div>
+
+    <div class="settings-section-label">Your currencies</div>
+    <p class="settings-help">Shown in your results and available to convert between.</p>
     <input type="search" id="currency-search" placeholder="Search…" autocomplete="off" />
     <div id="settings-error" class="hidden"></div>
     <div id="currency-toggles"></div>
@@ -1207,8 +1545,6 @@
   const multiGrid       = document.getElementById('multi-grid');
   const errorBlock      = document.getElementById('error-block');
   const volatilityBlock = document.getElementById('volatility-block');
-  const statusDot       = document.getElementById('status-dot');
-  const statusText      = document.getElementById('status-text');
   const mainEl          = document.querySelector('main');
   const settingsPanel   = document.getElementById('settings-panel');
   const currencyToggles = document.getElementById('currency-toggles');
@@ -1219,21 +1555,111 @@
   const settingsError   = document.getElementById('settings-error');
   const multiLabel      = document.getElementById('multi-label-amount');
 
-  // Desktop shows full currency names in the selects
+  const pairStatus      = document.getElementById('pair-status');
+  const amountSymbol    = document.getElementById('amount-symbol');
+  const settingsSwapBtn = document.getElementById('settings-swap-btn');
+  const resultsEl       = document.getElementById('results');
+  const sheetTop        = document.getElementById('sheet-top');
+  const sheetBackdrop   = document.getElementById('sheet-backdrop');
+
   const desktopMQ = window.matchMedia('(min-width: 1024px)');
+  // ── Theme ──────────────────────────────────────────────────────────
+  const THEME_KEY = 'xchg_theme';
+  const themeBtn  = document.getElementById('theme-btn');
+  const lightMQ   = matchMedia('(prefers-color-scheme: light)');
+  function savedTheme() {
+    try { const t = localStorage.getItem(THEME_KEY); return t === 'light' || t === 'dark' ? t : null; } catch(e) { return null; }
+  }
+  function applyTheme(t) {
+    const root = document.documentElement, bg = t === 'light' ? '#fafafa' : '#0a0a0a';
+    root.dataset.theme = t;
+    root.style.background = bg;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = bg;
+    const label = t === 'light' ? 'Switch to dark mode' : 'Switch to light mode';
+    themeBtn.setAttribute('aria-label', label);
+    themeBtn.title = label;
+  }
+  applyTheme(savedTheme() || (lightMQ.matches ? 'light' : 'dark'));
+  themeBtn.addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+    try { localStorage.setItem(THEME_KEY, next); } catch(e) {}
+    applyTheme(next);
+  });
+  // Until the user picks, keep following the device
+  lightMQ.addEventListener('change', e => { if (!savedTheme()) applyTheme(e.matches ? 'light' : 'dark'); });
+
+  const PAIR_KEY  = 'xchg_pair';
+
+  // ── Currency pair (a setting: changed in settings, shown in the header) ──
+  function savePair() {
+    try { localStorage.setItem(PAIR_KEY, JSON.stringify({ from: fromSelect.value, to: toSelect.value })); } catch(e) {}
+  }
+
+  function loadPair() {
+    try { return JSON.parse(localStorage.getItem(PAIR_KEY)) || {}; } catch(e) { return {}; }
+  }
+
+  // FROM and TO are always among "your currencies"
+  function ensureEnabled(...codes) {
+    const enabled = getEnabledCurrencies();
+    const missing = codes.filter(c => c && CURRENCY_META[c] && !enabled.includes(c));
+    if (missing.length) saveEnabledCurrencies([...enabled, ...missing]);
+  }
+
+  // Updates everything that names the pair: header status, amount label + symbol
+  // Placeholder spells out the currency name when it fits on one line, else the code
+  const phProbe = document.createElement('span');
+  function fitPlaceholder() {
+    const ph = document.getElementById('amount-placeholder');
+    const code = fromSelect.value, meta = CURRENCY_META[code];
+    if (!meta) return;
+    const cs = getComputedStyle(ph);
+    const avail = ph.parentElement.clientWidth - parseFloat(cs.right) - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    phProbe.style.cssText = `position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap;` +
+      `font:${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily};letter-spacing:${cs.letterSpacing};text-transform:uppercase`;
+    if (!phProbe.isConnected) document.body.appendChild(phProbe);
+    phProbe.textContent = `Amount in ${meta.name}`;
+    ph.textContent = phProbe.getBoundingClientRect().width <= avail ? phProbe.textContent : `Amount in ${code}`;
+  }
+  window.addEventListener('resize', fitPlaceholder);
+  if (document.fonts) {
+    document.fonts.ready.then(fitPlaceholder);
+    document.fonts.addEventListener('loadingdone', fitPlaceholder);
+  }
+
+  function updatePairUI() {
+    const from = fromSelect.value, to = toSelect.value;
+    const fm = CURRENCY_META[from], tm = CURRENCY_META[to];
+    if (!fm || !tm) return;
+    pairStatus.innerHTML =
+      `<span class="flag">${fm.flag}</span>${from}` +
+      `<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>` +
+      `<span class="flag">${tm.flag}</span>${to}`;
+    pairStatus.setAttribute('aria-label', `Converting ${fm.name} to ${tm.name}. Swap currencies`);
+    pairStatus.title = 'Swap currencies';
+    amountInput.setAttribute('aria-label', `Amount in ${from}`);
+    amountSymbol.textContent = CURRENCY_SYMBOLS[from] || from;
+    fitPlaceholder();
+    if (!convertBtn.querySelector('.loader')) convertBtn.textContent = `CONVERT TO ${to}`;
+  }
 
   // ── Populate selects ───────────────────────────────────────────────
   function populateSelects() {
-    const enabled = getEnabledCurrencies().filter(c => CURRENCY_META[c]).sort();
-    const prevFrom = fromSelect.value;
-    const prevTo   = toSelect.value;
+    const saved = loadPair();
+    const prevFrom = fromSelect.value || saved.from;
+    const prevTo   = toSelect.value   || saved.to;
+    ensureEnabled(prevFrom, prevTo);
+    // Options read "🇪🇺  Euro", so sort by name rather than code
+    const enabled = getEnabledCurrencies().filter(c => CURRENCY_META[c])
+      .sort((a, b) => CURRENCY_META[a].name.localeCompare(CURRENCY_META[b].name));
     [fromSelect, toSelect].forEach(sel => {
       sel.innerHTML = '';
       enabled.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c;
         const m = CURRENCY_META[c];
-        opt.textContent = `${m.flag}  ${c}`;
+        opt.textContent = `${m.flag}  ${m.name}`;
         sel.appendChild(opt);
       });
     });
@@ -1246,11 +1672,40 @@
     if (fromSelect.value === toSelect.value && enabled.length > 1) {
       toSelect.value = enabled.find(c => c !== fromSelect.value) || enabled[0];
     }
+    savePair();
+    updatePairUI();
   }
 
   // ── Settings panel ─────────────────────────────────────────────────
+  // Third line in each settings row: its rate against the From currency ("1 USD = 25,540 VND")
+  function settingsRateHTML(code) {
+    const from = fromSelect.value;
+    const rates = (sessionRates || loadRates())?.rates;
+    if (!rates || code === from || !rates[code] || !rates[from]) return '';
+    return `<span class="settings-row-rate">${cardRateHTML(from, code, rates)}</span>`;
+  }
+
+  function settingsRowHTML(code, meta, roleOrChecked) {
+    const right = typeof roleOrChecked === 'string'
+      ? `<span class="role-tag">${roleOrChecked}</span>`
+      : `<label class="toggle">
+           <input type="checkbox" value="${code}" ${roleOrChecked ? 'checked' : ''}>
+           <span class="toggle-slider"></span>
+         </label>`;
+    return `
+      <span class="settings-flag">${meta.flag}</span>
+      <div class="settings-row-info">
+        <span class="settings-row-code">${meta.name}</span>
+        ${settingsRateHTML(code)}
+      </div>
+      ${right}
+    `;
+  }
+
   function renderCurrencyToggles(filter = '') {
     const enabled = new Set(getEnabledCurrencies());
+    const from = fromSelect.value, to = toSelect.value;
+    const roles = { [from]: 'FROM', [to]: 'TO' };
     const container = currencyToggles;
     const q = filter.toLowerCase();
     container.innerHTML = '';
@@ -1262,28 +1717,15 @@
         meta.name.toLowerCase().includes(q) ||
         meta.country.toLowerCase().includes(q)
       );
-    } else {
-      entries.sort(([a], [b]) => {
-        const ae = enabled.has(a), be = enabled.has(b);
-        if (ae !== be) return ae ? -1 : 1;
-        return a.localeCompare(b);
-      });
     }
+    // FROM and TO pinned first, then your other currencies, then the rest
+    const rank = c => c === from ? 0 : c === to ? 1 : enabled.has(c) ? 2 : 3;
+    entries.sort(([a, ma], [b, mb]) => rank(a) - rank(b) || ma.name.localeCompare(mb.name)); // rows show names, so sort by name
 
     entries.forEach(([code, meta]) => {
       const row = document.createElement('div');
       row.className = 'settings-row';
-      row.innerHTML = `
-        <span class="settings-flag">${meta.flag}</span>
-        <div class="settings-row-info">
-          <span class="settings-row-code">${code}</span>
-          <span class="settings-row-name">${CURRENCY_SYMBOLS[code] ? CURRENCY_SYMBOLS[code] + ' ' : ''}${meta.name}</span>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" value="${code}" ${enabled.has(code) ? 'checked' : ''}>
-          <span class="toggle-slider"></span>
-        </label>
-      `;
+      row.innerHTML = settingsRowHTML(code, meta, roles[code] || enabled.has(code));
       container.appendChild(row);
     });
   }
@@ -1291,16 +1733,68 @@
   const currencySearch = document.getElementById('currency-search');
   currencySearch.addEventListener('input', () => renderCurrencyToggles(currencySearch.value));
 
+  // Toggles apply immediately, so a newly enabled currency can be picked in FROM / TO
+  currencyToggles.addEventListener('change', e => {
+    const input = e.target.closest('input[type="checkbox"]');
+    if (!input) return;
+    const enabled = getEnabledCurrencies().filter(c => c !== input.value);
+    if (input.checked) enabled.push(input.value);
+    saveEnabledCurrencies(enabled);
+    populateSelects();
+  });
+
   document.getElementById('restore-defaults-btn').addEventListener('click', () => {
     saveEnabledCurrencies(DEFAULT_CURRENCIES);
     currencySearch.value = '';
+    populateSelects();
     renderCurrencyToggles();
   });
 
+  function swapPairValues() {
+    const tmp = fromSelect.value;
+    fromSelect.value = toSelect.value;
+    toSelect.value = tmp;
+    savePair();
+    updatePairUI();
+  }
+
+  function spin(btn) {
+    btn.classList.remove('spinning');
+    void btn.offsetWidth; // restart animation
+    btn.classList.add('spinning');
+  }
+
+  // FROM / TO changes inside settings
+  let lastFrom = null, lastTo = null;
+  [fromSelect, toSelect].forEach(sel => sel.addEventListener('focus', () => {
+    lastFrom = fromSelect.value; lastTo = toSelect.value;
+  }));
+  [fromSelect, toSelect].forEach(sel => sel.addEventListener('change', () => {
+    // Picking the same currency on both sides swaps them
+    if (fromSelect.value === toSelect.value) {
+      if (sel === fromSelect) toSelect.value = lastFrom; else fromSelect.value = lastTo;
+    }
+    lastFrom = fromSelect.value; lastTo = toSelect.value;
+    savePair();
+    updatePairUI();
+    renderCurrencyToggles(currencySearch.value);
+  }));
+
+  settingsSwapBtn.addEventListener('click', () => {
+    swapPairValues();
+    spin(settingsSwapBtn);
+    renderCurrencyToggles(currencySearch.value);
+  });
+
+  let settingsOpenedWithResult = false;
+
   function openSettings() {
+    settingsOpenedWithResult = mainEl.classList.contains('has-result');
     currencySearch.value = '';
     renderCurrencyToggles();
     settingsError.classList.add('hidden');
+    settingsPanel.scrollTop = 0; // always open at the top, not where you left it
+    if (!sessionRates && !loadRates()) fetchRates().then(() => renderCurrencyToggles(currencySearch.value)).catch(() => {});
     headerMain.classList.add('hidden');
     headerSettings.classList.remove('hidden');
     settingsPanel.classList.add('open');
@@ -1308,30 +1802,14 @@
 
   settingsBtn.addEventListener('click', openSettings);
 
-  // "+ Add currency" card (desktop)
-  multiGrid.addEventListener('click', e => {
-    if (e.target.closest('.add-card')) openSettings();
-  });
-
   doneBtn.addEventListener('click', () => {
-    const visibleInputs = [...currencyToggles.querySelectorAll('input')];
-    const visibleCodes  = new Set(visibleInputs.map(el => el.value));
-    const visibleChecked = new Set(visibleInputs.filter(el => el.checked).map(el => el.value));
-    // Preserve enabled currencies that are filtered out of the current view
-    const preserved = getEnabledCurrencies().filter(c => !visibleCodes.has(c));
-    const checked = [...preserved, ...visibleChecked];
-    if (checked.length < 2) {
-      settingsError.textContent = 'Please enable at least 2 currencies.';
-      settingsError.classList.remove('hidden');
-      return;
-    }
-    settingsError.classList.add('hidden');
-    saveEnabledCurrencies(checked);
     headerSettings.classList.add('hidden');
     headerMain.classList.remove('hidden');
     settingsPanel.classList.remove('open');
     populateSelects();
-    hideResults();
+    // Re-run the conversion with the new settings if a result was showing
+    if (settingsOpenedWithResult && hasAmount()) convert();
+    else hideResults();
   });
 
   // ── Fetch rates ────────────────────────────────────────────────────
@@ -1340,14 +1818,13 @@
     const cached = loadRates();
     if (cached) {
       sessionRates = cached;
-      if (isStale(cached)) refreshRates(true).catch(() => {});
+      if (isStale(cached)) refreshRates().catch(() => {});
       return cached;
     }
-    return await refreshRates(false);
+    return await refreshRates();
   }
 
-  async function refreshRates(silent = false) {
-    if (!silent) setStatus('loading');
+  async function refreshRates() {
     const res = await fetch(`https://v6.exchangerate-api.com/v6/${API_KEY}/latest/USD`);
     if (!res.ok) throw new Error(`API error: ${res.status}`);
     const data = await res.json();
@@ -1361,24 +1838,30 @@
 
     saveRates(entry);
     sessionRates = entry;
-    if (!silent) setStatus('ready');
     return entry;
   }
 
   // ── Conversion logic ───────────────────────────────────────────────
-  async function convert() {
+  // live: re-run while typing with results open (no loader, no row animation)
+  let liveUpdate = false;
+
+  async function convert({ live = false } = {}) {
     const amount = parseFloat(amountInput.value.replace(/,/g, ''));
     const from   = fromSelect.value;
     const to     = toSelect.value;
 
     if (isNaN(amount) || amount <= 0) {
+      if (live) return;
       showError('Please enter a valid amount.');
       return;
     }
 
     errorBlock.classList.add('hidden');
-    convertBtn.disabled = true;
-    convertBtn.innerHTML = '<span class="loader"></span>FETCHING';
+    liveUpdate = live;
+    if (!live) {
+      convertBtn.disabled = true;
+      convertBtn.innerHTML = '<span class="loader"></span>FETCHING';
+    }
 
     try {
       const entry = await fetchRates();
@@ -1389,13 +1872,12 @@
       showResult(amount, from, converted, to, entry);
       showMultiGrid(amount, from, rates);
       checkVolatility(from, to);
-      setStatus('ready');
     } catch (err) {
       showError(err.message || 'Failed to fetch rates. Try again.');
-      setStatus('error');
     } finally {
-      convertBtn.innerHTML = 'CONVERT';
-      convertBtn.disabled = false;
+      liveUpdate = false;
+      convertBtn.textContent = `CONVERT TO ${toSelect.value}`;
+      convertBtn.disabled = !hasAmount();
     }
   }
 
@@ -1431,11 +1913,21 @@
     return `1 ${symbolCode(base)} = <strong>${formatRateValue(value)}</strong> ${symbolCode(quote)}`;
   }
 
-  // Card version names both currencies in full: "1 € Euro = 28,562 ₫ Vietnamese Dong"
+  // Desktop default view: always anchored on the From currency, full names
+  // ("1 $ US Dollar = 0.8925 € Euro"). Values under 1 keep 4 significant digits
+  // so weak From currencies still show something ("0.00003523").
+  function fullRateHTML(from, ccy, rates) {
+    const v = rates[ccy] / rates[from];
+    const value = v >= 1 ? formatRateValue(v)
+      : v.toLocaleString('en-US', { maximumSignificantDigits: 4 });
+    return `1 ${currencyLabel(from)} = <strong>${value}</strong> ${currencyLabel(ccy)}`;
+  }
+
+  // Row version uses codes only: "1 EUR = 28,616 VND"
   function cardRateHTML(from, ccy, rates) {
     const r = rates[ccy] / rates[from];
     const [base, quote, value] = r >= 1 ? [from, ccy, r] : [ccy, from, 1 / r];
-    return `1 ${currencyLabel(base)} = <strong>${formatRateValue(value)}</strong> ${currencyLabel(quote)}`;
+    return `1 ${base} = <strong>${formatRateValue(value)}</strong> ${quote}`;
   }
 
   function rateRowHTML(from, to, entry) {
@@ -1445,32 +1937,57 @@
   function showResult(amount, from, converted, to, entry) {
     lastConverted = converted;
     resultMeta.innerHTML = fromLabelHTML(`${formatNum(amount, from)} `, from);
-    resultAmount.textContent = formatNum(converted, to);
-    resultCurrency.textContent = currencyLabel(to);
+    const sym = CURRENCY_SYMBOLS[to];
+    resultAmount.innerHTML = (sym ? `<span class="result-sym">${sym}&nbsp;</span>` : '') + formatNum(converted, to);
+    resultCurrency.textContent = CURRENCY_META[to]?.name ?? to;
     resultRate.innerHTML = rateRowHTML(from, to, entry);
     resultRate.classList.remove('hidden');
     resultBlock.classList.remove('hidden');
+    positionSheet();
     mainEl.classList.add('has-result');
+    document.body.classList.add('sheet-open');
   }
+
+  // Phone: the results sheet starts just below the amount field
+  function positionSheet() {
+    // Same gap below the amount field as between the header and the field
+    const field  = document.querySelector('.amount-input-wrap').getBoundingClientRect();
+    const header = document.querySelector('header').getBoundingClientRect();
+    const gap = Math.max(0, field.top - header.bottom);
+    document.documentElement.style.setProperty('--sheet-top', `${Math.round(field.bottom + gap)}px`);
+  }
+  window.addEventListener('resize', () => { if (mainEl.classList.contains('has-result')) positionSheet(); });
 
   // Builds the other-currency rows (phone) / cards (desktop).
   // amount === null renders the empty-state preview without amounts.
   function renderCurrencyRows(from, amount, rates) {
     multiGrid.innerHTML = '';
-    const targets = getEnabledCurrencies().filter(c => c !== from && CURRENCY_META[c]);
+    // With a result, leave out the main currency (it's shown big above the list).
+    // In the empty state, list it first so the current pair's rate is there too.
+    const to = toSelect.value;
+    let targets = getEnabledCurrencies().filter(c => c !== from && CURRENCY_META[c]);
+    targets = amount === null
+      ? [to, ...targets.filter(c => c !== to)].filter(c => c !== from && CURRENCY_META[c])
+      : targets.filter(c => c !== to);
 
     targets.forEach((ccy, i) => {
       if (rates && !rates[ccy]) return;
       const meta = CURRENCY_META[ccy];
       const val  = amount !== null ? formatNum(amount * (rates[ccy] / rates[from]), ccy) : '';
       const row  = document.createElement('div');
-      row.className = 'multi-row';
-      if (amount !== null) row.style.animationDelay = `${i * 30}ms`;
+      row.className = amount === null && ccy === to ? 'multi-row current' : 'multi-row';
+      row.dataset.code = ccy;
+      row.title = `Make ${ccy} the main result`;
+      if (amount === null || liveUpdate) row.classList.add('static');
+      else row.style.animationDelay = `${i * 30}ms`;
       row.innerHTML = `
         <span class="flag">${meta.flag}</span>
-        <span class="value">${val}&nbsp;&nbsp;<span class="value-code">${ccy}</span></span>
+        <span class="value"><span class="value-sym">${CURRENCY_SYMBOLS[ccy] ?? ''}</span>${val}&nbsp;&nbsp;<span class="value-code">${ccy}</span></span>
         <span class="currency-name">${currencyLabel(ccy)}</span>
+        <span class="plain-name">${meta.name}</span>
         ${rates && rates[from] ? `<span class="rate">${cardRateHTML(from, ccy, rates)}</span>` : ''}
+        ${rates && rates[from] ? `<span class="rate-full">${fullRateHTML(from, ccy, rates)}</span>` : ''}
+        ${amount === null && ccy === to ? '<span class="role-tag current-tag">CURRENT</span>' : ''}
       `;
       multiGrid.appendChild(row);
     });
@@ -1480,12 +1997,30 @@
     add.className = 'add-card';
     add.innerHTML = '<span aria-hidden="true">+</span> Add currency';
     multiGrid.appendChild(add);
+    alignRowSymbols();
   }
 
-  // "VND =" labels: code on phones ("VND"),
-  // symbol + full name on desktop ("₫ Vietnamese Dong").
+  // Symbols differ in width ($, NT$, ฿), so give them all the widest one's slot
+  // (right-aligned) and the amounts line up on the left.
+  // Same idea for the whole amount, so the names after it line up too.
+  function alignRowSymbols() {
+    const widest = sel => Math.max(0, ...[...multiGrid.querySelectorAll(sel)].map(e => e.getBoundingClientRect().width));
+    multiGrid.style.removeProperty('--sym-w');
+    multiGrid.style.removeProperty('--val-w');
+    const sw = widest('.value-sym');
+    if (sw) multiGrid.style.setProperty('--sym-w', `${Math.ceil(sw)}px`);
+    const vw = widest('.value');
+    if (vw) multiGrid.style.setProperty('--val-w', `${Math.ceil(vw)}px`);
+  }
+  if (document.fonts) document.fonts.addEventListener('loadingdone', () => alignRowSymbols());
+
+  // "₫ 100,000 VND =" on phones, "₫ 100,000 Vietnamese Dong =" on desktop.
+  // With no amount the symbol rides with the name instead ("₫ Vietnamese Dong =").
   function fromLabelHTML(prefix, from) {
-    return `${prefix}<span class="label-code">${from}</span><span class="label-name">${currencyLabel(from)}</span> =`;
+    const sym = CURRENCY_SYMBOLS[from];
+    const lead = prefix && sym ? `${sym} ` : '';
+    const name = lead ? (CURRENCY_META[from]?.name ?? from) : currencyLabel(from);
+    return `${lead}${prefix}<span class="label-code">${from}</span><span class="label-name">${name}</span> =`;
   }
 
   function setMultiLabel(prefix, from) {
@@ -1496,6 +2031,9 @@
     setMultiLabel(`${formatNum(amount, from)} `, from);
     renderCurrencyRows(from, amount, rates);
     multiBlock.classList.remove('hidden', 'ghost');
+    // Nothing to list (only the pair is enabled): hide it on phones; desktop still offers "Add currency"
+    if (!multiGrid.querySelector('.multi-row') && !desktopMQ.matches) multiBlock.classList.add('hidden');
+    alignRowSymbols(); // measure again now the rows are visible (hidden rows measure 0)
   }
 
   // Before converting: the result stays hidden. On desktop the right panel
@@ -1506,11 +2044,12 @@
     const rates = sessionRates && sessionRates.rates[from] ? sessionRates.rates : null;
 
     mainEl.classList.remove('has-result');
+    document.body.classList.remove('sheet-open');
     resultBlock.classList.add('hidden');
 
-    setMultiLabel('', from);
+    multiLabel.textContent = 'Conversion rates';
     renderCurrencyRows(from, null, rates);
-    multiBlock.classList.remove('hidden');
+    multiBlock.classList.toggle('hidden', !rates); // rows are only rates here; wait for them
     multiBlock.classList.add('ghost');
   }
 
@@ -1546,20 +2085,6 @@
     renderEmptyState();
   }
 
-  function setStatus(state) {
-    statusDot.className = 'status-dot';
-    if (state === 'loading') {
-      statusDot.classList.add('loading');
-      statusText.textContent = 'LOADING';
-    } else if (state === 'error') {
-      statusDot.classList.add('error');
-      statusText.textContent = 'ERROR';
-    } else {
-      statusDot.classList.add('ready');
-      statusText.textContent = 'READY';
-    }
-  }
-
   // ── Events ─────────────────────────────────────────────────────────
   convertBtn.addEventListener('click', convert);
   convertBtn.addEventListener('touchstart', () => {}, { passive: true });
@@ -1589,7 +2114,8 @@
     clearBtn.classList.toggle('visible', has);
     mainEl.classList.toggle('has-amount', has);
     amountPlaceholder.classList.toggle('hidden', has);
-    hideResults();
+    if (mainEl.classList.contains('has-result') && has) convert({ live: true });
+    else hideResults();
   });
 
   amountInput.addEventListener('keydown', e => {
@@ -1616,18 +2142,12 @@
     hideResults();
   });
 
-  [fromSelect, toSelect].forEach(sel => sel.addEventListener('change', () => {
-    hideResults();
-    convertBtn.disabled = !hasAmount();
-  }));
-
-  swapBtn.addEventListener('click', () => {
-    const tmp = fromSelect.value;
-    fromSelect.value = toSelect.value;
-    toSelect.value = tmp;
-    swapBtn.classList.remove('spinning');
-    void swapBtn.offsetWidth; // force reflow so animation restarts
-    swapBtn.classList.add('spinning');
+  // SWAP next to the result: flip the pair and convert the result back
+  // Swap the pair (SWAP by the result, or the pair in the header).
+  // With a result showing, the converted amount moves into the field and re-converts.
+  function swapAndConvert(btn) {
+    swapPairValues();
+    spin(btn);
     if (lastConverted !== null && mainEl.classList.contains('has-result')) {
       const formatted = formatNum(lastConverted, fromSelect.value);
       amountInput.value = parseFloat(formatted.replace(/,/g, '')) === 0
@@ -1639,6 +2159,62 @@
       convertBtn.disabled = !hasAmount();
       amountInput.focus();
     }
+  }
+
+  swapBtn.addEventListener('click', () => swapAndConvert(swapBtn));
+  pairStatus.addEventListener('click', () => swapAndConvert(pairStatus));
+
+  // Tap a currency card / row to make it the main result (the TO currency).
+  // The "+ Add currency" card opens settings.
+  multiGrid.addEventListener('click', e => {
+    if (e.target.closest('.add-card')) { openSettings(); return; }
+    const row = e.target.closest('.multi-row');
+    if (!row || !row.dataset.code || row.dataset.code === toSelect.value) return;
+    toSelect.value = row.dataset.code;
+    savePair();
+    updatePairUI();
+    if (mainEl.classList.contains('has-result') && hasAmount()) {
+      convert();
+      resultsEl.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      hideResults();
+    }
+  });
+
+  // ── Results sheet (phone) ──────────────────────────────────────────
+  // Closing goes straight back to the amount, selected, ready for a new number.
+  function closeResults() {
+    hideResults();
+    amountInput.focus();
+    amountInput.select();
+  }
+
+  sheetBackdrop.addEventListener('click', closeResults);
+  // Tapping "1,000,000 VND =" goes back to the amount (desktop keeps the result visible)
+  resultMeta.addEventListener('click', () => { amountInput.focus(); amountInput.select(); });
+
+  // Swipe the sheet down to close it
+  let dragStartY = null, dragDY = 0;
+  resultsEl.addEventListener('touchstart', e => {
+    if (desktopMQ.matches || !mainEl.classList.contains('has-result')) return;
+    const fromHandle = !!e.target.closest('#sheet-top');
+    if (!fromHandle && resultsEl.scrollTop > 0) return;
+    dragStartY = e.touches[0].clientY; dragDY = 0;
+  }, { passive: true });
+  resultsEl.addEventListener('touchmove', e => {
+    if (dragStartY === null) return;
+    dragDY = Math.max(0, e.touches[0].clientY - dragStartY);
+    if (dragDY > 0) {
+      resultsEl.style.transition = 'none';
+      resultsEl.style.transform = `translateY(${dragDY}px)`;
+    }
+  }, { passive: true });
+  resultsEl.addEventListener('touchend', () => {
+    if (dragStartY === null) return;
+    resultsEl.style.transition = '';
+    resultsEl.style.transform = '';
+    if (dragDY > 90) closeResults();
+    dragStartY = null; dragDY = 0;
   });
 
   document.addEventListener('touchstart', e => {
@@ -1656,7 +2232,7 @@
     if (!desktopMQ.matches || sessionRates) return;
     fetchRates()
       .then(() => { if (!mainEl.classList.contains('has-result')) renderEmptyState(); })
-      .catch(() => setStatus('error'));
+      .catch(() => {});
   }
   preloadRatesForDesktop();
   desktopMQ.addEventListener('change', preloadRatesForDesktop);
