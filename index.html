@@ -4,18 +4,30 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0a0a0a" />
-  <script>
-    // Theme before first paint: saved choice, else follow the device
-    (function () {
-      var t; try { t = localStorage.getItem('xchg_theme'); } catch (e) {}
-      if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-      var bg = t === 'light' ? '#fafafa' : '#0a0a0a', d = document.documentElement;
-      d.dataset.theme = t; d.style.background = bg;
-      var m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = bg;
-    })();
-  </script>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <script>
+    // Theme, defined once. Runs before first paint (no flash); the app script reuses it.
+    // Saved choice wins, else follow the device. iOS reads the status-bar style at launch only.
+    window.THEME = {
+      key: 'xchg_theme',
+      bg: { light: '#fafafa', dark: '#0a0a0a' },
+      saved: function () {
+        try { var t = localStorage.getItem(this.key); return t === 'light' || t === 'dark' ? t : null; } catch (e) { return null; }
+      },
+      initial: function () {
+        return this.saved() || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      },
+      apply: function (t) {
+        var d = document.documentElement, bg = this.bg[t];
+        d.dataset.theme = t; d.style.background = bg;
+        var m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = bg;
+        var sb = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+        if (sb) sb.content = t === 'light' ? 'default' : 'black';
+      }
+    };
+    THEME.apply(THEME.initial());
+  </script>
   <!-- iOS splash screens -->
   <link rel="apple-touch-startup-image" href="/currency-converter/splash/splash-750x1334.png"   media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2)">
   <link rel="apple-touch-startup-image" href="/currency-converter/splash/splash-1125x2436.png"  media="(device-width:375px) and (device-height:812px) and (-webkit-device-pixel-ratio:3)">
@@ -296,12 +308,6 @@
     #currency-search::placeholder { color: var(--text-dim); }
     #currency-search:focus { border-color: var(--text-mid); }
 
-    #settings-error {
-      font-family: var(--sans);
-      font-size: 12px;
-      color: var(--danger);
-      margin-bottom: 16px;
-    }
 
     .settings-row {
       display: flex;
@@ -590,7 +596,7 @@
     .spinning svg { animation: spin-ccw 0.35s cubic-bezier(0.2, 0, 0.4, 1) both; }
     .settings-swap.spinning svg, .swap-action.spinning svg { animation-name: spin; }
 
-    /* Current pair shown as status in the header; tap opens settings */
+    /* Current pair shown in the header; tap swaps it (the pair is changed in settings) */
     .pair-status {
       display: flex;
       align-items: center;
@@ -1024,7 +1030,6 @@
     .multi-row.static { animation: none; }
 
     /* ── RESULTS SHEET (phones and tablets) ── */
-    #sheet-backdrop { display: none; }
     @media (max-width: 1023px) {
       .results {
         position: fixed;
@@ -1051,16 +1056,6 @@
       }
       .results > * { max-width: 560px; margin-left: auto; margin-right: auto; }
 
-      #sheet-backdrop {
-        display: block;
-        position: fixed;
-        inset: 0;
-        z-index: 40;
-        background: rgba(0,0,0,0.6);
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s;
-      }
       /* partial sheet: no dimming, the amount above stays usable */
       body.sheet-open { overflow: hidden; }
 
@@ -1283,7 +1278,6 @@
 
 </main>
 
-<div id="sheet-backdrop"></div>
 
 <div id="settings-panel">
   <div class="settings-content">
@@ -1307,7 +1301,6 @@
     <div class="settings-section-label">Your currencies</div>
     <p class="settings-help">Shown in your results and available to convert between.</p>
     <input type="search" id="currency-search" placeholder="Search…" autocomplete="off" />
-    <div id="settings-error" class="hidden"></div>
     <div id="currency-toggles"></div>
     <div class="settings-footer">
       <button id="restore-defaults-btn">Restore defaults</button>
@@ -1552,7 +1545,6 @@
   const headerSettings  = document.getElementById('header-settings');
   const settingsBtn     = document.getElementById('settings-btn');
   const doneBtn         = document.getElementById('done-btn');
-  const settingsError   = document.getElementById('settings-error');
   const multiLabel      = document.getElementById('multi-label-amount');
 
   const pairStatus      = document.getElementById('pair-status');
@@ -1560,30 +1552,23 @@
   const settingsSwapBtn = document.getElementById('settings-swap-btn');
   const resultsEl       = document.getElementById('results');
   const sheetTop        = document.getElementById('sheet-top');
-  const sheetBackdrop   = document.getElementById('sheet-backdrop');
 
   const desktopMQ = window.matchMedia('(min-width: 1024px)');
   // ── Theme ──────────────────────────────────────────────────────────
-  const THEME_KEY = 'xchg_theme';
+  // THEME (key, colours, apply) is defined once in the <head> script
   const themeBtn  = document.getElementById('theme-btn');
   const lightMQ   = matchMedia('(prefers-color-scheme: light)');
-  function savedTheme() {
-    try { const t = localStorage.getItem(THEME_KEY); return t === 'light' || t === 'dark' ? t : null; } catch(e) { return null; }
-  }
+  const savedTheme = () => THEME.saved();
   function applyTheme(t) {
-    const root = document.documentElement, bg = t === 'light' ? '#fafafa' : '#0a0a0a';
-    root.dataset.theme = t;
-    root.style.background = bg;
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = bg;
+    THEME.apply(t);
     const label = t === 'light' ? 'Switch to dark mode' : 'Switch to light mode';
     themeBtn.setAttribute('aria-label', label);
     themeBtn.title = label;
   }
-  applyTheme(savedTheme() || (lightMQ.matches ? 'light' : 'dark'));
+  applyTheme(THEME.initial());
   themeBtn.addEventListener('click', () => {
     const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
-    try { localStorage.setItem(THEME_KEY, next); } catch(e) {}
+    try { localStorage.setItem(THEME.key, next); } catch(e) {}
     applyTheme(next);
   });
   // Until the user picks, keep following the device
@@ -1677,15 +1662,14 @@
   }
 
   // ── Settings panel ─────────────────────────────────────────────────
-  // Third line in each settings row: its rate against the From currency ("1 USD = 25,540 VND")
-  function settingsRateHTML(code) {
+  // Second line in each settings row: its rate against the From currency ("1 USD = 25,540 VND")
+  function settingsRateHTML(code, rates) {
     const from = fromSelect.value;
-    const rates = (sessionRates || loadRates())?.rates;
     if (!rates || code === from || !rates[code] || !rates[from]) return '';
     return `<span class="settings-row-rate">${cardRateHTML(from, code, rates)}</span>`;
   }
 
-  function settingsRowHTML(code, meta, roleOrChecked) {
+  function settingsRowHTML(code, meta, roleOrChecked, rates) {
     const right = typeof roleOrChecked === 'string'
       ? `<span class="role-tag">${roleOrChecked}</span>`
       : `<label class="toggle">
@@ -1696,7 +1680,7 @@
       <span class="settings-flag">${meta.flag}</span>
       <div class="settings-row-info">
         <span class="settings-row-code">${meta.name}</span>
-        ${settingsRateHTML(code)}
+        ${settingsRateHTML(code, rates)}
       </div>
       ${right}
     `;
@@ -1708,6 +1692,7 @@
     const roles = { [from]: 'FROM', [to]: 'TO' };
     const container = currencyToggles;
     const q = filter.toLowerCase();
+    const rates = (sessionRates || loadRates())?.rates; // once per redraw, not per row
     container.innerHTML = '';
 
     let entries = Object.entries(CURRENCY_META);
@@ -1725,7 +1710,7 @@
     entries.forEach(([code, meta]) => {
       const row = document.createElement('div');
       row.className = 'settings-row';
-      row.innerHTML = settingsRowHTML(code, meta, roles[code] || enabled.has(code));
+      row.innerHTML = settingsRowHTML(code, meta, roles[code] || enabled.has(code), rates);
       container.appendChild(row);
     });
   }
@@ -1743,6 +1728,8 @@
     populateSelects();
   });
 
+  // Restores the default list; populateSelects() then re-adds the current From/To
+  // (ensureEnabled) so the pair you're converting is never switched off.
   document.getElementById('restore-defaults-btn').addEventListener('click', () => {
     saveEnabledCurrencies(DEFAULT_CURRENCIES);
     currencySearch.value = '';
@@ -1792,7 +1779,6 @@
     settingsOpenedWithResult = mainEl.classList.contains('has-result');
     currencySearch.value = '';
     renderCurrencyToggles();
-    settingsError.classList.add('hidden');
     settingsPanel.scrollTop = 0; // always open at the top, not where you left it
     if (!sessionRates && !loadRates()) fetchRates().then(() => renderCurrencyToggles(currencySearch.value)).catch(() => {});
     headerMain.classList.add('hidden');
@@ -1842,42 +1828,48 @@
   }
 
   // ── Conversion logic ───────────────────────────────────────────────
-  // live: re-run while typing with results open (no loader, no row animation)
-  let liveUpdate = false;
+  // live: re-run while typing with results open (no loader, no row animation, no errors)
+  let convertSeq = 0;      // only the newest convert() may draw its result
+  let fetchingCount = 0;   // non-live converts showing FETCHING on the button
 
   async function convert({ live = false } = {}) {
-    const amount = parseFloat(amountInput.value.replace(/,/g, ''));
+    let amount = parseFloat(amountInput.value.replace(/,/g, ''));
     const from   = fromSelect.value;
     const to     = toSelect.value;
 
     if (isNaN(amount) || amount <= 0) {
-      if (live) return;
-      showError('Please enter a valid amount.');
-      return;
+      // While typing ("0", "0.", "."), follow the field with a zero result instead of
+      // leaving the previous one on screen
+      if (!live) { showError('Please enter a valid amount.'); return; }
+      amount = 0;
     }
 
+    const seq = ++convertSeq;
     errorBlock.classList.add('hidden');
-    liveUpdate = live;
     if (!live) {
+      fetchingCount++;
       convertBtn.disabled = true;
       convertBtn.innerHTML = '<span class="loader"></span>FETCHING';
     }
 
     try {
       const entry = await fetchRates();
+      if (seq !== convertSeq) return; // a newer convert has taken over
       const { rates } = entry;
 
       if (!rates[from] || !rates[to]) throw new Error(`Rate not available.`);
       const converted = amount * (rates[to] / rates[from]);
       showResult(amount, from, converted, to, entry);
-      showMultiGrid(amount, from, rates);
+      showMultiGrid(amount, from, rates, live);
       checkVolatility(from, to);
     } catch (err) {
-      showError(err.message || 'Failed to fetch rates. Try again.');
+      if (seq === convertSeq && !live) showError(err.message || 'Failed to fetch rates. Try again.');
     } finally {
-      liveUpdate = false;
-      convertBtn.textContent = `CONVERT TO ${toSelect.value}`;
-      convertBtn.disabled = !hasAmount();
+      if (!live) fetchingCount--;
+      if (fetchingCount === 0) {
+        convertBtn.textContent = `CONVERT TO ${toSelect.value}`;
+        convertBtn.disabled = !hasAmount();
+      }
     }
   }
 
@@ -1960,7 +1952,7 @@
 
   // Builds the other-currency rows (phone) / cards (desktop).
   // amount === null renders the empty-state preview without amounts.
-  function renderCurrencyRows(from, amount, rates) {
+  function renderCurrencyRows(from, amount, rates, live = false) {
     multiGrid.innerHTML = '';
     // With a result, leave out the main currency (it's shown big above the list).
     // In the empty state, list it first so the current pair's rate is there too.
@@ -1978,7 +1970,7 @@
       row.className = amount === null && ccy === to ? 'multi-row current' : 'multi-row';
       row.dataset.code = ccy;
       row.title = `Make ${ccy} the main result`;
-      if (amount === null || liveUpdate) row.classList.add('static');
+      if (amount === null || live) row.classList.add('static');
       else row.style.animationDelay = `${i * 30}ms`;
       row.innerHTML = `
         <span class="flag">${meta.flag}</span>
@@ -1997,7 +1989,6 @@
     add.className = 'add-card';
     add.innerHTML = '<span aria-hidden="true">+</span> Add currency';
     multiGrid.appendChild(add);
-    alignRowSymbols();
   }
 
   // Symbols differ in width ($, NT$, ฿), so give them all the widest one's slot
@@ -2027,13 +2018,13 @@
     multiLabel.innerHTML = fromLabelHTML(prefix, from);
   }
 
-  function showMultiGrid(amount, from, rates) {
+  function showMultiGrid(amount, from, rates, live = false) {
     setMultiLabel(`${formatNum(amount, from)} `, from);
-    renderCurrencyRows(from, amount, rates);
+    renderCurrencyRows(from, amount, rates, live);
     multiBlock.classList.remove('hidden', 'ghost');
     // Nothing to list (only the pair is enabled): hide it on phones; desktop still offers "Add currency"
     if (!multiGrid.querySelector('.multi-row') && !desktopMQ.matches) multiBlock.classList.add('hidden');
-    alignRowSymbols(); // measure again now the rows are visible (hidden rows measure 0)
+    alignRowSymbols(); // measure once the rows are visible (hidden rows measure 0)
   }
 
   // Before converting: the result stays hidden. On desktop the right panel
@@ -2189,7 +2180,6 @@
     amountInput.select();
   }
 
-  sheetBackdrop.addEventListener('click', closeResults);
   // Tapping "1,000,000 VND =" goes back to the amount (desktop keeps the result visible)
   resultMeta.addEventListener('click', () => { amountInput.focus(); amountInput.select(); });
 
@@ -2209,13 +2199,15 @@
       resultsEl.style.transform = `translateY(${dragDY}px)`;
     }
   }, { passive: true });
-  resultsEl.addEventListener('touchend', () => {
+  function endSheetDrag(allowClose) {
     if (dragStartY === null) return;
     resultsEl.style.transition = '';
     resultsEl.style.transform = '';
-    if (dragDY > 90) closeResults();
+    if (allowClose && dragDY > 90) closeResults();
     dragStartY = null; dragDY = 0;
-  });
+  }
+  resultsEl.addEventListener('touchend', () => endSheetDrag(true));
+  resultsEl.addEventListener('touchcancel', () => endSheetDrag(false)); // e.g. a call or system gesture
 
   document.addEventListener('touchstart', e => {
     if (!e.target.closest('.amount-input-wrap')) amountInput.blur();
