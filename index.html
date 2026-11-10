@@ -88,6 +88,7 @@
       --field-border-w: 3px;
       --ctl-border-w: 3px;        /* pulldowns + settings swap */
       --focus-dim: #666;          /* symbol/placeholder on the white focused field */
+      --convert-disabled-fg: #4a4a4a; /* faint "Convert to …" before there's an amount */
       --clear-bg: #3a3a3a;
       --clear-fg: #fff;
       --grabber: #3a3a3a;
@@ -123,6 +124,7 @@
       --field-border-w: 2px;
       --ctl-border-w: 1px;
       --focus-dim: #777;
+      --convert-disabled-fg: #aaa;
       --focus-border: var(--ink);
       --clear-bg: #ededed;
       --clear-fg: #4d4d4d;
@@ -206,7 +208,7 @@
       width: auto;
       display: block;
       position: relative;
-      top: 0;
+      top: -1px;
     }
 
     .header-right {
@@ -676,16 +678,16 @@
     }
 
     #convert-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-    #convert-btn:active { transform: scale(0.99); background: var(--accent-hover); }
+    #convert-btn:not(:disabled):active { transform: scale(0.99); background: var(--accent-hover); }
     main.has-result #convert-btn:not(:disabled):active {
       background: transparent;
       border-color: var(--text-mid);
       color: var(--text);
     }
-    #convert-btn:disabled { background: var(--surface2); color: var(--text-dim); cursor: not-allowed; }
+    #convert-btn:disabled { background: var(--surface2); color: var(--convert-disabled-fg); cursor: default; }
 
     @media (hover: hover) {
-      #convert-btn:hover { background: var(--accent-hover); }
+      #convert-btn:not(:disabled):hover { background: var(--accent-hover); }
       main.has-result #convert-btn:not(:disabled):hover {
         background: transparent;
         border-color: var(--text-mid);
@@ -908,6 +910,14 @@
     /* The pair Convert will use: brighter text, green rate and a CURRENT tag */
     #multi-block.ghost .multi-row.current .rate-full { color: var(--text); }
     #multi-block.ghost .multi-row.current .rate-full strong { color: var(--ink); }
+    /* Light mode: lime can't be text, so the current rate gets a lime highlight (lime as fill),
+       the light-mode counterpart of the green number in dark mode */
+    :root[data-theme="light"] #multi-block.ghost .multi-row.current .rate-full strong {
+      background: var(--accent);
+      color: #000;
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
     #multi-block.ghost .multi-row .current-tag { display: block; order: 3; margin-left: 12px; }
 
 
