@@ -511,6 +511,7 @@
       transition: opacity 0.15s, color 0.15s;
     }
     #clear-btn.visible { opacity: 1; pointer-events: auto; }
+
     #clear-btn:hover { color: var(--text); }
     .amount-input-wrap:focus-within #clear-btn { background: rgba(0,0,0,0.15); color: #fff; }
     .amount-input-wrap:focus-within #clear-btn:hover { background: rgba(0,0,0,0.25); }
@@ -596,7 +597,7 @@
       color: var(--ink);
       transition: border-color 0.2s, background 0.2s;
     }
-    /* same box and states as the settings button beside it */
+    /* same box and states as the .header-btn buttons beside it */
     @media (hover: hover) { .pair-status:hover { border-color: var(--text-dim); background: var(--surface2); } }
     .pair-status:active { border-color: var(--text-dim); background: var(--surface2); }
     .pair-status:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
@@ -1497,6 +1498,7 @@
   const multiLabel      = document.getElementById('multi-label-amount');
 
   const pairStatus      = document.getElementById('pair-status');
+  const mainSwapBtn     = document.getElementById('main-swap-btn');
   const amountSymbol    = document.getElementById('amount-symbol');
   const settingsSwapBtn = document.getElementById('settings-swap-btn');
   const resultsEl       = document.getElementById('results');
@@ -1543,34 +1545,44 @@
 
   // Updates everything that names the pair: header status, amount label + symbol
   // Placeholder spells out the currency name when it fits on one line, else the code
-  const phProbe = document.createElement('span');
+  // Would `text`, set in el's font, fit in `avail` px on one line? (one hidden probe, shared)
+  const fitProbe = document.createElement('span');
+  function fitsText(el, text, avail) {
+    const cs = getComputedStyle(el);
+    fitProbe.style.cssText = `position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap;` +
+      `font:${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily};letter-spacing:${cs.letterSpacing};text-transform:${cs.textTransform}`;
+    if (!fitProbe.isConnected) document.body.appendChild(fitProbe);
+    fitProbe.textContent = text;
+    return fitProbe.getBoundingClientRect().width <= avail;
+  }
+
+  // Placeholder: "Amount in Vietnamese Dong" when it fits, else "Amount in VND"
   function fitPlaceholder() {
     const ph = document.getElementById('amount-placeholder');
-    const code = fromSelect.value, meta = CURRENCY_META[code];
-    if (!meta) return;
+    const code = fromSelect.value, name = CURRENCY_META[code]?.name;
     const cs = getComputedStyle(ph);
     const avail = ph.parentElement.clientWidth - parseFloat(cs.right) - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-    phProbe.style.cssText = `position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap;` +
-      `font:${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily};letter-spacing:${cs.letterSpacing};text-transform:uppercase`;
-    if (!phProbe.isConnected) document.body.appendChild(phProbe);
-    phProbe.textContent = `Amount in ${meta.name}`;
-    ph.textContent = phProbe.getBoundingClientRect().width <= avail ? phProbe.textContent : `Amount in ${code}`;
+    ph.textContent = name && fitsText(ph, `Amount in ${name}`, avail) ? `Amount in ${name}` : `Amount in ${code}`;
   }
-  // "Convert to US Dollar" when it fits on the button, else "Convert to USD"
-  function setConvertLabel() {
-    const code = toSelect.value, meta = CURRENCY_META[code];
-    if (!meta) return;
+
+  // Convert button: "Convert to US Dollar" when it fits (16px+ clear each side), else "Convert to USD".
+  // Text stays in sentence case for screen readers; CSS shows it in capitals.
+  // Cached on currency + width, so live typing doesn't re-measure on every key.
+  let convertLabelKey = '';
+  function setConvertLabel({ force = false } = {}) {
+    const code = toSelect.value, name = CURRENCY_META[code]?.name;
+    const key = `${code}|${convertBtn.clientWidth}`;
+    if (!force && key === convertLabelKey && !convertBtn.querySelector('.loader')) return;
+    convertLabelKey = key;
     const cs = getComputedStyle(convertBtn);
-    const avail = convertBtn.clientWidth - 32; // keep 16px clear each side
-    phProbe.style.cssText = `position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap;` +
-      `font:${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily};letter-spacing:${cs.letterSpacing};text-transform:uppercase`;
-    if (!phProbe.isConnected) document.body.appendChild(phProbe);
-    phProbe.textContent = `Convert to ${meta.name}`;
-    convertBtn.textContent = (phProbe.getBoundingClientRect().width <= avail ? phProbe.textContent : `Convert to ${code}`).toUpperCase();
+    const avail = convertBtn.clientWidth
+      - Math.max(16, parseFloat(cs.paddingLeft)) - Math.max(16, parseFloat(cs.paddingRight));
+    convertBtn.textContent = name && fitsText(convertBtn, `Convert to ${name}`, avail)
+      ? `Convert to ${name}` : `Convert to ${code}`;
   }
   const refitLabels = () => {
     fitPlaceholder();
-    if (!convertBtn.querySelector('.loader')) setConvertLabel();
+    if (!convertBtn.querySelector('.loader')) setConvertLabel({ force: true }); // fonts/width may have changed
   };
 
   window.addEventListener('resize', refitLabels);
@@ -2100,9 +2112,9 @@
     hideResults();
   });
 
-  // SWAP next to the result: flip the pair and convert the result back
-  // Swap the pair (SWAP by the result, or the pair in the header).
-  // With a result showing, the converted amount moves into the field and re-converts.
+  // Swap button in the header: flip the pair. With a result showing, the converted
+  // amount moves into the field and converts back; otherwise the typed amount just
+  // changes currency.
   function swapAndConvert(btn) {
     swapPairValues();
     spin(btn);
@@ -2119,7 +2131,6 @@
     }
   }
 
-  const mainSwapBtn = document.getElementById('main-swap-btn');
   mainSwapBtn.addEventListener('click', () => swapAndConvert(mainSwapBtn));
 
   // Tap a currency card / row to make it the main result (the TO currency).
