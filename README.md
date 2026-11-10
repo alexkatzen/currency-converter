@@ -1,97 +1,54 @@
 # Giá.exchange
 
-A lightweight currency converter PWA built for use on mobile while traveling — optimized for slow connections, minimal data usage, and instant launch.
+A currency converter for travelling: an installable web app that opens instantly and keeps working on slow or missing connections.
 
----
+**Live:** https://alexkatzen.github.io/currency-converter/
 
-## What it is
+## Using it
 
-A single HTML file with no framework, no build step, and no dependencies beyond two self-hosted font files. The entire app — markup, styles, and logic — lives in `index.html`. It's deployed as a GitHub Pages site and installable as a PWA on iOS and Android.
+- **Convert:** type an amount and tap **Convert to …**. You get the result, the rate, and when the rates were last updated. Below that is the same amount in each of your other currencies, with the current pair highlighted. Keep typing and the results update as you go.
+- **Change the pair:** tap the pair in the header to open settings, then pick From and To. Picking the same currency on both sides swaps them. Your pair is remembered.
+- **Swap:** the circular arrow in the header swaps the pair. If a result is showing, it also converts that result back the other way.
+- **Your currencies:** in settings, choose which of the 160+ currencies appear in your results and pickers. You can search by code, name or country ("Vietnam"). **Restore defaults** resets the list to USD, EUR, THB, VND, TWD and CNY.
+- **Theme:** the moon/sun button switches between dark and light. It follows your system setting until you choose one.
+- **Volatility warning:** a warning appears when ARS, TRY, NGN, PKR, EGP, IRR, VES or ZWL is in the pair. These rates can move quickly, so check them before you pay.
 
----
+On a phone, results open in a bottom sheet that you drag down to dismiss. On screens 1024px and wider, the controls sit on the left and the results on the right.
 
-## How it works
+## How it stays fast
 
-### Rate data
+**One rate request a day.** The app fetches a single USD-based table from [ExchangeRate-API](https://www.exchangerate-api.com) and works out every other pair from it (`A → B = rates[B] / rates[A]`). Changing pairs never costs another request.
 
-Exchange rates come from [ExchangeRate-API](https://www.exchangerate-api.com). The app always fetches a single USD-based rate table, then derives any currency pair from that using cross-rate math:
+**Cached rates show first.** Rates are kept in `localStorage` until the API's `nextUpdate` time (usually 24 hours). After that, the old rates still show straight away and fresh ones load in the background. With no connection, the app keeps working as long as it has cached rates; each result shows when its rates are from. On first use with no connection, it shows an error.
 
-```
-VND → EUR  =  USD_rates[EUR] / USD_rates[VND]
-```
+**The app itself works offline.** A service worker (`sw.js`) caches the page, fonts, logo and iOS splash screens when the app is first installed. After that, it loads from the cache without using the network. The fonts are hosted in this repo rather than loaded from Google Fonts, which saves two network round trips each time the app opens.
 
-This means **one network request per day**, regardless of how many different currency pairs you convert. The alternative — fetching a fresh rate table for each "from" currency — would multiply data usage by the number of currencies used in a session.
+## Development
 
-Rates are cached in `localStorage` with the API's own `nextUpdate` timestamp (typically 24 hours). On subsequent launches, the cached rates are used immediately. If the cache is stale, the app still shows the old rates instantly and refreshes in the background — so you always get a result, even on a slow connection.
+There's no build step and no dependencies: the whole app (markup, styles and logic) is in `index.html`.
 
-### Offline / launch performance
+**Run locally.** The service worker paths start with `/currency-converter/`, so serve the folder *above* the repo:
 
-The app is registered as a [Progressive Web App](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps) with a service worker (`sw.js`). On first load, the SW caches:
-
-- `index.html`
-- `manifest.json`
-- `logo.svg` (wordmark)
-- `fonts/space-grotesk.woff2`
-- `fonts/outfit-400.woff2`
-
-Every subsequent launch loads entirely from cache — no network required for the app shell. This eliminates the 3–7 second blank screen that would otherwise occur on a slow connection while the browser waits for fonts and HTML to download.
-
-The fonts are self-hosted for this reason. Using Google Fonts requires two sequential network round trips on every launch (one for the CSS, one for the font file itself), which are a major source of startup lag on poor connections.
-
-### Status indicator
-
-The header pill shows the current state of the rate data:
-
-- **READY** (lime dot) — rates loaded, conversions available
-- **LOADING** (orange dot) — fetching fresh rates from the network
-- **ERROR** (red dot) — network request failed
-
-If you're offline but have a cached rate, the app shows READY and converts using the cached data. The timestamp shown below each conversion result tells you how current the rates are.
-
-### Volatility warning
-
-A small set of currencies known for high volatility (ARS, TRY, NGN, etc.) trigger a warning banner when selected, reminding you to verify before transacting.
-
-### Settings
-
-Tap the sliders icon in the header to open the settings panel. From there you can:
-
-- **Enable or disable currencies** — choose which currencies appear in the converter dropdowns. 160+ currencies are available, sourced from ExchangeRate-API.
-- **Search** — filter the currency list by code, name, or country name (e.g. "Vietnam", "United States").
-- **Restore defaults** — reset to the default set (USD, EUR, THB, VND, TWD, CNY).
-
-Enabled currencies are saved to `localStorage` and persist across sessions. The settings panel slides up from the bottom, and enabled currencies are always sorted to the top of the list.
-
----
-
-## File structure
-
-```
-index.html          — the entire app
-sw.js               — service worker (caching + offline)
-manifest.json       — PWA manifest (name, icons, display mode)
-logo.svg            — wordmark used in the header
-icon-192.png        — PWA home screen icon
-icon-512.png        — PWA splash / store icon
-favicon.ico         — browser tab icon
-fonts/
-  space-grotesk.woff2
-  outfit-400.woff2
+```sh
+cd .. && python3 -m http.server 8000
+# open http://localhost:8000/currency-converter/
 ```
 
----
+**Deploy.** Push to `main`; GitHub Pages serves it. **Bump `CACHE_NAME` in `sw.js` with every change**, otherwise installed copies keep serving the old cached version.
 
-## Supported currencies
+**Splash screens.** If you change `logo.svg`, regenerate the iOS splash images with `python3 gen-splash.py`. It needs Pillow and `rsvg-convert` (`brew install librsvg`).
 
-160+ currencies are available, including all major and many minor currencies supported by ExchangeRate-API. The default set shown on first launch is:
+**API key.** The ExchangeRate-API key in `index.html` is a free-tier key that runs in the browser, so anyone can see it. Don't put a paid key there.
 
-| Code | Currency        |
-|------|----------------|
-| USD  | US Dollar       |
-| EUR  | Euro            |
-| THB  | Thai Baht       |
-| VND  | Vietnamese Dong |
-| TWD  | Taiwan Dollar   |
-| CNY  | Chinese Yuan    |
+## Files
 
-Additional currencies can be enabled at any time from the settings panel.
+```
+index.html            the whole app
+sw.js                 service worker: caches the app for offline use
+manifest.json         PWA manifest
+logo.svg              wordmark
+icon-192.png, icon-512.png, favicon.ico
+fonts/                Space Grotesk, Outfit, and a currency-symbol subset of Inter
+splash/               iOS launch images (made by gen-splash.py)
+gen-splash.py         regenerates splash/ from logo.svg
+```
