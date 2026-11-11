@@ -579,9 +579,9 @@
     .settings-swap:active { color: var(--ink); border-color: var(--ink); }
     @keyframes spin-ccw { to { transform: rotate(-360deg); } }
     .spinning svg { animation: spin-ccw 0.35s cubic-bezier(0.2, 0, 0.4, 1) both; }
-    .settings-swap.spinning svg, .header-btn.spinning svg { animation-name: spin; }
+    .settings-swap.spinning svg { animation-name: spin; }
 
-    /* Current pair shown in the header; tap opens settings */
+    /* Current pair shown in the header; tap swaps it */
     .pair-status {
       display: flex;
       align-items: center;
@@ -1177,9 +1177,9 @@
 <header>
   <div class="logo"><img src="logo.svg" alt="Giá" /></div>
   <div class="header-right" id="header-main">
-    <button id="pair-status" class="pair-status" aria-label="Currency settings"></button>
-    <button id="main-swap-btn" class="header-btn" title="Swap currencies" aria-label="Swap currencies">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.4 9.4A9 9 0 0 1 12 3a9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M20.6 14.6A9 9 0 0 1 12 21a9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+    <button id="pair-status" class="pair-status" aria-label="Swap currencies"></button>
+    <button id="settings-btn" class="header-btn" title="Settings" aria-label="Settings">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h2.5M11.5 6H20M4 12h9.5M18.5 12H20M4 18h3.5M12.5 18H20"/><circle cx="9" cy="6" r="2.5"/><circle cx="16" cy="12" r="2.5"/><circle cx="10" cy="18" r="2.5"/></svg>
     </button>
     <button id="theme-btn" class="theme-btn header-btn" aria-label="Switch to light mode" title="Switch to light mode">
       <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10.04 3.22A9 9 0 1 0 20.78 13.96A7.6 7.6 0 0 1 10.04 3.22Z"/></svg>
@@ -1517,7 +1517,7 @@
   const multiLabel      = document.getElementById('multi-label-amount');
 
   const pairStatus      = document.getElementById('pair-status');
-  const mainSwapBtn     = document.getElementById('main-swap-btn');
+  const settingsBtn     = document.getElementById('settings-btn');
   const amountSymbol    = document.getElementById('amount-symbol');
   const settingsSwapBtn = document.getElementById('settings-swap-btn');
   const resultsEl       = document.getElementById('results');
@@ -1617,10 +1617,10 @@
     if (!fm || !tm) return;
     pairStatus.innerHTML =
       `<span class="flag">${fm.flag}</span>${from}` +
-      `<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>` +
+      `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.4 9.4A9 9 0 0 1 12 3a9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M20.6 14.6A9 9 0 0 1 12 21a9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>` +
       `<span class="flag">${tm.flag}</span>${to}`;
-    pairStatus.setAttribute('aria-label', `Converting ${fm.name} to ${tm.name}. Open currency settings`);
-    pairStatus.title = 'Currency settings';
+    pairStatus.setAttribute('aria-label', `Converting ${fm.name} to ${tm.name}. Swap currencies`);
+    pairStatus.title = 'Swap currencies';
   }
 
   function updatePairUI({ deferPill = false } = {}) {
@@ -1804,9 +1804,6 @@
     headerSettings.classList.remove('hidden');
     settingsPanel.classList.add('open');
   }
-
-  // The pair in the header is the way into settings (there's no separate settings button)
-  pairStatus.addEventListener('click', openSettings);
 
   doneBtn.addEventListener('click', () => {
     headerSettings.classList.add('hidden');
@@ -2153,12 +2150,11 @@
     hideResults();
   });
 
-  // Swap button in the header: flip the pair. With a result showing, the converted
-  // amount moves into the field and converts back; otherwise the typed amount just
-  // changes currency.
-  function swapAndConvert(btn) {
+  // Tapping the pair in the header swaps it (the pill flips). With a result showing,
+  // the converted amount moves into the field and converts back; otherwise the typed
+  // amount just changes currency.
+  function swapAndConvert() {
     swapPairValues();
-    spin(btn);
     if (lastConverted !== null && mainEl.classList.contains('has-result')) {
       const formatted = formatNum(lastConverted, fromSelect.value);
       amountInput.value = parseFloat(formatted.replace(/,/g, '')) === 0
@@ -2172,7 +2168,8 @@
     }
   }
 
-  mainSwapBtn.addEventListener('click', () => swapAndConvert(mainSwapBtn));
+  pairStatus.addEventListener('click', swapAndConvert);
+  settingsBtn.addEventListener('click', openSettings);
 
   // Tap a currency card / row to make it the main result (the TO currency).
   // The "+ Add currency" card opens settings.
