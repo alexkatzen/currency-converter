@@ -13,6 +13,8 @@ A currency converter for travelling: an installable web app that opens instantly
 - **Theme:** the moon/sun button switches between dark and light. It follows your system setting until you choose one.
 - **Volatility warning:** a warning appears when ARS, TRY, NGN, PKR, EGP, IRR, VES or ZWL is in the pair. These rates can move quickly, so check them before you pay.
 
+Before you convert, the main screen lists the rate from your From currency to each of your currencies, with the date the rates are from. Tap one to make it the To currency.
+
 On a phone, results open in a bottom sheet that you drag down to dismiss. On screens 1024px and wider, the controls sit on the left and the results on the right.
 
 ## How it stays fast

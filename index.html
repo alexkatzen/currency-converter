@@ -76,6 +76,7 @@
       --bg: #0a0a0a;
       --surface: #111111;
       --surface2: #1a1a1a;
+      --row-current-bg: var(--surface); /* active rate row: one step up from the page */
       --border: #2a2a2a;
       --text: #e8e8e8;
       --text-dim: #666;
@@ -94,6 +95,7 @@
       --grabber: #3a3a3a;
       --ghost-border: #333;
       --sheet-shadow: rgba(0,0,0,0.6);
+      --scrim: rgba(10,10,10,0.8);      /* behind the amount field while typing */
       --toggle-off-track: var(--surface2);
       --toggle-off-border: var(--border);
       --toggle-off-knob: var(--text-dim);
@@ -114,6 +116,7 @@
       --bg: #fafafa;
       --surface: #ffffff;
       --surface2: #ededed;
+      --row-current-bg: #ffffff;
       --border: #c4c4c4;
       --text: #1a1a1a;
       --text-dim: #777;
@@ -131,6 +134,7 @@
       --grabber: #d6d6d6;
       --ghost-border: #c4c4c4;
       --sheet-shadow: rgba(0,0,0,0.08);
+      --scrim: rgba(250,250,250,0.94);
       --toggle-off-track: #e0e0e0;
       --toggle-off-border: transparent;
       --toggle-off-knob: #ffffff;
@@ -164,6 +168,29 @@
       min-height: 100dvh;
       position: relative;
     }
+
+    /* ── FOCUS OVERLAY: while typing an amount (no result showing), everything but
+       the field and Convert fades back. Sits above the sticky header (100). ── */
+    #focus-scrim {
+      position: fixed;
+      inset: 0;
+      z-index: 110;
+      background: var(--scrim);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s, visibility 0s linear 0.2s;
+    }
+    body.amount-focus #focus-scrim {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.2s, visibility 0s;
+    }
+    .amount-block, #convert-btn, #error-block { position: relative; }
+    /* amount-raise outlasts amount-focus by the fade, so these stay above the
+       overlay until it's gone (JS). The error ("enter a valid amount") stays readable. */
+    body.amount-raise .amount-block,
+    body.amount-raise #convert-btn,
+    body.amount-raise #error-block { z-index: 111; }
 
     /* ── SETTINGS PANEL ── */
     #settings-panel {
@@ -818,7 +845,21 @@
       color: var(--text-dim);
       text-transform: uppercase;
       margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
     }
+    /* Default state: "Rates from Nov 10, 2026" opposite the label, styled like .result-rate */
+    .multi-label-updated {
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0;
+      text-transform: none;
+      color: var(--text-dim);
+      white-space: nowrap;
+    }
+    .multi-label-updated:empty { display: none; }
 
     .multi-grid {
       display: grid;
@@ -890,10 +931,9 @@
       white-space: nowrap;
     }
     .multi-row .rate strong { font-weight: 400; color: inherit; }
-    .multi-row .rate-full,
-    .multi-row .current-tag { display: none; }
+    .multi-row .rate-full { display: none; }
 
-    /* ── EMPTY STATE: "Conversion rates" list (desktop only; hidden on phones), rate only ── */
+    /* ── EMPTY STATE: "Conversion rates" list before converting, rate only ── */
     #multi-block.ghost .multi-grid { background: none; }
     #multi-block.ghost .multi-row {
       background: transparent;
@@ -915,18 +955,38 @@
       color: var(--text-dim);
     }
     #multi-block.ghost .multi-row .rate-full strong { font-weight: 400; color: inherit; }
-    /* The pair Convert will use: brighter text, green rate and a CURRENT tag */
-    #multi-block.ghost .multi-row.current .rate-full { color: var(--text); }
+    /* Each half stays on one line; a half too long for the row ends in "…"
+       instead of running under the flag */
+    #multi-block.ghost .multi-row .rate-side {
+      display: inline-block;
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      vertical-align: top;
+      padding: 1px 0; /* room for the light-mode highlight */
+    }
+    /* The pair Convert will use: its rate stands out, green number in dark mode; in light mode lime
+       can't be text, so the number gets a lime highlight (lime as fill) */
+    #multi-block.ghost .multi-row.current { background: var(--row-current-bg); }
     #multi-block.ghost .multi-row.current .rate-full strong { color: var(--ink); }
-    /* Light mode: lime can't be text, so the current rate gets a lime highlight (lime as fill),
-       the light-mode counterpart of the green number in dark mode */
     :root[data-theme="light"] #multi-block.ghost .multi-row.current .rate-full strong {
       background: var(--accent);
       color: #000;
       padding: 1px 5px;
       border-radius: 4px;
     }
-    #multi-block.ghost .multi-row .current-tag { display: block; order: 3; margin-left: 12px; }
+    /* Rows you can pick: hover (mouse) and pressed (tap/click). The current row is
+       already the To currency, so tapping it does nothing and it gets no states. */
+    #multi-block.ghost .multi-row { -webkit-tap-highlight-color: transparent; }
+    @media (hover: hover) {
+      #multi-block.ghost .multi-row:not(.current):hover { background: var(--surface2); }
+    }
+    #multi-block.ghost .multi-row:not(.current):active {
+      background: var(--surface2);
+      transition-duration: 0s; /* show the press at once; fade out on release */
+    }
+    #multi-block.ghost .multi-row.current { cursor: default; }
 
 
     .multi-row .value-code {
@@ -1001,10 +1061,31 @@
       #rotate-notice { display: flex; }
     }
 
-    /* Empty-state preview and desktop-only pieces are hidden on phones */
-    #multi-block.ghost,
-    .add-card,
+    /* Desktop-only pieces are hidden on phones */
     .label-name { display: none; }
+
+    /* Last row: add a currency (opens settings) */
+    .add-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      min-height: 56px;
+      padding: 12px 16px;
+      background: var(--surface);
+      border: none;
+      color: var(--text-mid);
+      font-family: var(--sans);
+      font-size: 14px;
+      text-align: left;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s, color 0.2s;
+    }
+    .add-card span { font-size: 20px; line-height: 1; }
+    @media (hover: hover) { .add-card:hover { background: var(--surface2); color: var(--text); } }
+    .add-card:active { background: var(--surface2); color: var(--text); transition-duration: 0s; }
+    #multi-block.ghost .add-card:not(:hover):not(:active) { background: transparent; }
 
     /* Currency rows / cards: tap to make that currency the main result */
     .multi-row[data-code] { cursor: pointer; }
@@ -1063,7 +1144,8 @@
         color: var(--text-mid);
       }
       .results .result-meta { font-size: 13px; }
-      .results .multi-row { background: var(--bg); }
+      .results .multi-row,
+      .results .add-card:not(:hover):not(:active) { background: var(--bg); }
       /* Phones: [€ 3.49] [Euro] ... [flag] — rates live in settings instead */
       .results .multi-row {
         display: grid;
@@ -1121,6 +1203,7 @@
       .result-amount { font-size: 88px; }
       .result-currency { font-size: 14px; }
       .result-rate { font-size: 13px; }
+      .multi-label-updated { font-size: 13px; }
 
       /* Other currencies: one list of rows.
          [amount] [€ Euro] <------> [1 EUR = 28,616 VND] [flag] */
@@ -1134,28 +1217,11 @@
       .multi-row .flag { font-size: 28px; width: 36px; margin-left: 8px; }
       .multi-row[data-code]:hover { background: var(--surface2); }
 
-      /* Empty state on desktop: one line, larger */
-      #multi-block.ghost .multi-row .rate-full { font-size: 17px; white-space: nowrap; }
-      :root[data-theme="light"] #multi-block.ghost .multi-row .current-tag { background: #fff; border-color: #000; color: #000; }
+      /* Empty state on desktop: larger; wraps at "=" when the row is narrow */
+      #multi-block.ghost .multi-row .rate-full { font-size: 17px; }
 
-      /* Last row: add a currency */
-      .add-card {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        padding: 16px 20px;
-        background: var(--surface);
-        border: none;
-        color: var(--text-mid);
-        font-family: var(--sans);
-        font-size: 14px;
-        text-align: left;
-        cursor: pointer;
-        transition: background 0.15s, color 0.2s;
-      }
-      .add-card span { font-size: 20px; line-height: 1; }
-      .add-card:hover { background: var(--surface2); color: var(--text); }
-      #multi-block.ghost .add-card { background: transparent; }
+      /* Last row: add a currency (base styles above) */
+      .add-card { gap: 16px; min-height: 64px; padding: 16px 20px; }
 
       .sheet-top { display: none; }
 
@@ -1172,6 +1238,7 @@
 </head>
 <body>
 
+<div id="focus-scrim" aria-hidden="true"></div>
 <div id="rotate-notice"><span>⟳</span>Please rotate your phone</div>
 
 <header>
@@ -1241,6 +1308,7 @@
   <div id="multi-block" class="hidden">
     <div class="multi-label">
       <span id="multi-label-amount"></span>
+      <span id="multi-label-updated" class="multi-label-updated"></span>
     </div>
     <div class="multi-grid" id="multi-grid"></div>
   </div>
@@ -1515,6 +1583,7 @@
   const headerSettings  = document.getElementById('header-settings');
   const doneBtn         = document.getElementById('done-btn');
   const multiLabel      = document.getElementById('multi-label-amount');
+  const multiUpdated    = document.getElementById('multi-label-updated');
 
   const pairStatus      = document.getElementById('pair-status');
   const settingsBtn     = document.getElementById('settings-btn');
@@ -1821,7 +1890,10 @@
     const cached = loadRates();
     if (cached) {
       sessionRates = cached;
-      if (isStale(cached)) refreshRates().catch(() => {});
+      if (isStale(cached)) refreshRates()
+        // Redraw the default view so its rates and "Rates from" date are the new ones
+        .then(() => { if (!mainEl.classList.contains('has-result')) renderEmptyState(); })
+        .catch(() => {});
       return cached;
     }
     return await refreshRates();
@@ -1929,7 +2001,9 @@
     const v = rates[ccy] / rates[from];
     const value = v >= 1 ? formatRateValue(v)
       : v.toLocaleString('en-US', { maximumSignificantDigits: 4 });
-    return `1 ${currencyLabel(from)} = <strong>${value}</strong> ${currencyLabel(ccy)}`;
+    // Two halves so a narrow row wraps at the "=" rather than mid-name
+    return `<span class="rate-side">1 ${currencyLabel(from)}</span> ` +
+           `<span class="rate-side">= <strong>${value}</strong> ${currencyLabel(ccy)}</span>`;
   }
 
   // Row version uses codes only: "1 EUR = 28,616 VND"
@@ -1954,6 +2028,7 @@
     resultBlock.classList.remove('hidden');
     positionSheet();
     mainEl.classList.add('has-result');
+    syncAmountFocus(); // a result is showing: lift the overlay
     document.body.classList.add('sheet-open');
   }
 
@@ -1985,6 +2060,7 @@
       const val  = amount !== null ? formatNum(amount * (rates[ccy] / rates[from]), ccy) : '';
       const row  = document.createElement('div');
       row.className = amount === null && ccy === to ? 'multi-row current' : 'multi-row';
+      if (amount === null && ccy === to) row.setAttribute('aria-current', 'true'); // the highlight is visual only
       row.dataset.code = ccy;
       row.title = `Make ${ccy} the main result`;
       if (amount === null || live) row.classList.add('static');
@@ -1996,7 +2072,6 @@
         <span class="plain-name">${meta.name}</span>
         ${rates && rates[from] ? `<span class="rate">${cardRateHTML(from, ccy, rates)}</span>` : ''}
         ${rates && rates[from] ? `<span class="rate-full">${fullRateHTML(from, ccy, rates)}</span>` : ''}
-        ${amount === null && ccy === to ? '<span class="role-tag current-tag">CURRENT</span>' : ''}
       `;
       multiGrid.appendChild(row);
     });
@@ -2033,20 +2108,27 @@
 
   function setMultiLabel(prefix, from) {
     multiLabel.innerHTML = fromLabelHTML(prefix, from);
+    multiUpdated.textContent = ''; // the result above already says how fresh the rates are
   }
 
   function showMultiGrid(amount, from, rates, live = false) {
     setMultiLabel(`${formatNum(amount, from)} `, from);
+    placeMultiBlock(false);
     renderCurrencyRows(from, amount, rates, live);
     multiBlock.classList.remove('hidden', 'ghost');
-    // Nothing to list (only the pair is enabled): hide it on phones; desktop still offers "Add currency"
-    if (!multiGrid.querySelector('.multi-row') && !desktopMQ.matches) multiBlock.classList.add('hidden');
     alignRowSymbols(); // measure once the rows are visible (hidden rows measure 0)
   }
 
-  // Before converting: the result stays hidden. On desktop the right panel
-  // previews your other currencies as empty cards with their rates
-  // (the preview is hidden on phones, so they look exactly as before).
+  // The rates list lives in the results panel, except on phones before a result:
+  // the sheet is closed then, so the list sits in the page under Convert.
+  const controlsEl = document.querySelector('.controls');
+  function placeMultiBlock(underConvert) {
+    const home = underConvert ? controlsEl : resultsEl;
+    if (multiBlock.parentElement !== home) home.appendChild(multiBlock);
+  }
+
+  // Before converting: the result stays hidden and your other currencies are
+  // listed with their rates (desktop: right panel; phones: under Convert).
   function renderEmptyState() {
     const from  = fromSelect.value;
     const rates = sessionRates && sessionRates.rates[from] ? sessionRates.rates : null;
@@ -2054,11 +2136,14 @@
     mainEl.classList.remove('has-result');
     document.body.classList.remove('sheet-open');
     resultBlock.classList.add('hidden');
+    placeMultiBlock(!desktopMQ.matches);
 
     multiLabel.textContent = 'Conversion rates';
+    multiUpdated.textContent = rates ? `Rates from ${formatUpdated(sessionRates.updatedAt)}` : '';
     renderCurrencyRows(from, null, rates);
     multiBlock.classList.toggle('hidden', !rates); // rows are only rates here; wait for them
     multiBlock.classList.add('ghost');
+    syncAmountFocus(); // back to no result: overlay again if you're still typing
   }
 
   function checkVolatility(from, to) {
@@ -2125,6 +2210,25 @@
     if (mainEl.classList.contains('has-result') && has) convert({ live: true });
     else hideResults();
   });
+
+  // Focus overlay: dims the rest of the screen while you type an amount, but only
+  // before a result is showing (a showing result updates as you type).
+  const focusScrim = document.getElementById('focus-scrim');
+  const SCRIM_FADE_MS = 200;
+  let scrimLowerTimer = null;
+  function syncAmountFocus() {
+    const on = document.activeElement === amountInput && !mainEl.classList.contains('has-result');
+    const body = document.body;
+    if (on === body.classList.contains('amount-focus')) return;
+    clearTimeout(scrimLowerTimer);
+    body.classList.toggle('amount-focus', on);
+    if (on) body.classList.add('amount-raise');
+    else scrimLowerTimer = setTimeout(() => body.classList.remove('amount-raise'), SCRIM_FADE_MS);
+  }
+  amountInput.addEventListener('focus', syncAmountFocus);
+  amountInput.addEventListener('blur', syncAmountFocus);
+  // Tapping the overlay just closes it (and the keyboard)
+  focusScrim.addEventListener('pointerdown', e => { e.preventDefault(); amountInput.blur(); });
 
   amountInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') { convert(); return; }
@@ -2234,16 +2338,17 @@
   convertBtn.disabled = true;
   renderEmptyState();
 
-  // Desktop: load rates up front (cached copy when available) so the empty
-  // cards can show their rates. Phones keep loading rates on first Convert.
-  function preloadRatesForDesktop() {
-    if (!desktopMQ.matches || sessionRates) return;
+  // Load rates up front (cached copy when available) so the default list can
+  // show them. Still one request a day at most.
+  if (!sessionRates) {
     fetchRates()
       .then(() => { if (!mainEl.classList.contains('has-result')) renderEmptyState(); })
       .catch(() => {});
   }
-  preloadRatesForDesktop();
-  desktopMQ.addEventListener('change', preloadRatesForDesktop);
+  // Crossing the desktop/phone width with no result: move the list to its place there
+  desktopMQ.addEventListener('change', () => {
+    if (!mainEl.classList.contains('has-result')) renderEmptyState();
+  });
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
