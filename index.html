@@ -605,6 +605,14 @@
     .pair-status:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
     .pair-status .flag { font-size: 18px; letter-spacing: 0; }
     .pair-status svg { color: var(--ink); }
+    /* Swap: turn edge-on, new pair is drawn in at the midpoint (JS), turn back */
+    @keyframes pair-flip {
+      0%     { transform: perspective(400px) rotateY(0deg); }
+      50%    { transform: perspective(400px) rotateY(90deg); }
+      50.01% { transform: perspective(400px) rotateY(-90deg); }
+      100%   { transform: perspective(400px) rotateY(0deg); }
+    }
+    .pair-status.flipping { animation: pair-flip 0.36s cubic-bezier(0.4, 0, 0.2, 1) both; }
 
     /* Header icon buttons (swap, theme): 30px boxes matching the pair pill */
     .header-btn {
@@ -1602,7 +1610,8 @@
     document.fonts.addEventListener('loadingdone', refitLabels);
   }
 
-  function updatePairUI() {
+  // Header pill: from → to
+  function renderPairStatus() {
     const from = fromSelect.value, to = toSelect.value;
     const fm = CURRENCY_META[from], tm = CURRENCY_META[to];
     if (!fm || !tm) return;
@@ -1612,6 +1621,12 @@
       `<span class="flag">${tm.flag}</span>${to}`;
     pairStatus.setAttribute('aria-label', `Converting ${fm.name} to ${tm.name}. Open currency settings`);
     pairStatus.title = 'Currency settings';
+  }
+
+  function updatePairUI({ deferPill = false } = {}) {
+    const from = fromSelect.value, to = toSelect.value;
+    if (!CURRENCY_META[from] || !CURRENCY_META[to]) return;
+    if (!deferPill) renderPairStatus();
     amountInput.setAttribute('aria-label', `Amount in ${from}`);
     amountSymbol.textContent = CURRENCY_SYMBOLS[from] || from;
     fitPlaceholder();
@@ -1731,8 +1746,23 @@
     fromSelect.value = toSelect.value;
     toSelect.value = tmp;
     savePair();
-    updatePairUI();
+    updatePairUI({ deferPill: true });
+    flipPairStatus();
   }
+
+  // Flip the header pill horizontally; its text changes while it's edge-on
+  const PAIR_FLIP_MS = 360;
+  let pairFlipTimer = null;
+  function flipPairStatus() {
+    clearTimeout(pairFlipTimer);
+    pairStatus.classList.remove('flipping');
+    void pairStatus.offsetWidth; // restart animation on rapid taps
+    pairStatus.classList.add('flipping');
+    pairFlipTimer = setTimeout(renderPairStatus, PAIR_FLIP_MS / 2);
+  }
+  pairStatus.addEventListener('animationend', e => {
+    if (e.animationName === 'pair-flip') pairStatus.classList.remove('flipping');
+  });
 
   function spin(btn) {
     btn.classList.remove('spinning');
