@@ -116,7 +116,6 @@
       --bg: #fafafa;
       --surface: #ffffff;
       --surface2: #ededed;
-      --row-current-bg: #ffffff;
       --border: #c4c4c4;
       --text: #1a1a1a;
       --text-dim: #777;
@@ -169,7 +168,7 @@
       position: relative;
     }
 
-    /* ── FOCUS OVERLAY: while typing an amount (no result showing), everything but
+    /* ── FOCUS OVERLAY (below desktop width): while typing an amount (no result showing), everything but
        the field and Convert fades back. Sits above the sticky header (100). ── */
     #focus-scrim {
       position: fixed;
@@ -1083,9 +1082,7 @@
       transition: background 0.15s, color 0.2s;
     }
     .add-card span { font-size: 20px; line-height: 1; }
-    @media (hover: hover) { .add-card:hover { background: var(--surface2); color: var(--text); } }
-    .add-card:active { background: var(--surface2); color: var(--text); transition-duration: 0s; }
-    #multi-block.ghost .add-card:not(:hover):not(:active) { background: transparent; }
+    #multi-block.ghost .add-card { background: transparent; }
 
     /* Currency rows / cards: tap to make that currency the main result */
     .multi-row[data-code] { cursor: pointer; }
@@ -1145,7 +1142,7 @@
       }
       .results .result-meta { font-size: 13px; }
       .results .multi-row,
-      .results .add-card:not(:hover):not(:active) { background: var(--bg); }
+      .results .add-card { background: var(--bg); }
       /* Phones: [€ 3.49] [Euro] ... [flag] — rates live in settings instead */
       .results .multi-row {
         display: grid;
@@ -1222,6 +1219,14 @@
 
       /* Last row: add a currency (base styles above) */
       .add-card { gap: 16px; min-height: 64px; padding: 16px 20px; }
+    }
+    /* Add-card states come after every background above (hover only where hover is real,
+       so a tap on a phone doesn't leave it stuck) */
+    @media (hover: hover) {
+      #multi-block .add-card:hover { background: var(--surface2); color: var(--text); }
+    }
+    #multi-block .add-card:active { background: var(--surface2); color: var(--text); transition-duration: 0s; }
+    @media (min-width: 1024px) {
 
       .sheet-top { display: none; }
 
@@ -1899,7 +1904,14 @@
     return await refreshRates();
   }
 
-  async function refreshRates() {
+  // One request at a time: a Convert (or settings) during the launch load waits for it
+  let refreshInFlight = null;
+  function refreshRates() {
+    if (!refreshInFlight) refreshInFlight = requestRates().finally(() => { refreshInFlight = null; });
+    return refreshInFlight;
+  }
+
+  async function requestRates() {
     const res = await fetch(`https://v6.exchangerate-api.com/v6/${API_KEY}/latest/USD`);
     if (!res.ok) throw new Error(`API error: ${res.status}`);
     const data = await res.json();
@@ -2211,13 +2223,16 @@
     else hideResults();
   });
 
-  // Focus overlay: dims the rest of the screen while you type an amount, but only
-  // before a result is showing (a showing result updates as you type).
+  // Focus overlay (phones and tablets only, below the desktop width): dims the rest of
+  // the screen while you type an amount, but only before a result is showing
+  // (a showing result updates as you type).
   const focusScrim = document.getElementById('focus-scrim');
   const SCRIM_FADE_MS = 200;
   let scrimLowerTimer = null;
   function syncAmountFocus() {
-    const on = document.activeElement === amountInput && !mainEl.classList.contains('has-result');
+    const on = document.activeElement === amountInput
+      && !mainEl.classList.contains('has-result')
+      && !desktopMQ.matches;
     const body = document.body;
     if (on === body.classList.contains('amount-focus')) return;
     clearTimeout(scrimLowerTimer);
@@ -2227,6 +2242,7 @@
   }
   amountInput.addEventListener('focus', syncAmountFocus);
   amountInput.addEventListener('blur', syncAmountFocus);
+  desktopMQ.addEventListener('change', syncAmountFocus);
   // Tapping the overlay just closes it (and the keyboard)
   focusScrim.addEventListener('pointerdown', e => { e.preventDefault(); amountInput.blur(); });
 
@@ -2268,7 +2284,9 @@
     } else {
       hideResults();
       convertBtn.disabled = !hasAmount();
-      amountInput.focus();
+      // Desktop: back to the amount, ready to type. Not on phones, where it would
+      // open the focus overlay and the keyboard on every swap.
+      if (desktopMQ.matches) amountInput.focus();
     }
   }
 
@@ -2340,11 +2358,14 @@
 
   // Load rates up front (cached copy when available) so the default list can
   // show them. Still one request a day at most.
-  if (!sessionRates) {
+  function preloadRates() {
     fetchRates()
       .then(() => { if (!mainEl.classList.contains('has-result')) renderEmptyState(); })
       .catch(() => {});
   }
+  preloadRates();
+  // Opened offline with nothing cached: try again once the connection is back
+  window.addEventListener('online', () => { if (!sessionRates) preloadRates(); });
   // Crossing the desktop/phone width with no result: move the list to its place there
   desktopMQ.addEventListener('change', () => {
     if (!mainEl.classList.contains('has-result')) renderEmptyState();
