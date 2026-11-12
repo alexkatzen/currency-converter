@@ -1358,6 +1358,7 @@
   const CACHE_KEY           = 'xchg_rates_v2';
   const SETTINGS_KEY        = 'xchg_enabled_ccys';
   const DEFAULT_CURRENCIES  = ['USD', 'EUR', 'THB', 'VND', 'TWD', 'CNY'];
+  const DEFAULT_PAIR        = { from: 'USD', to: 'VND' }; // first visit and Restore defaults
   const VOLATILE_CURRENCIES = new Set(['ARS','TRY','NGN','PKR','EGP','IRR','VES','ZWL']);
   const NO_DECIMALS         = new Set(['BIF','CLP','DJF','GNF','HUF','IDR','ISK','JPY','KMF','KRW','PYG','RWF','THB','UGX','VND','VUV','XAF','XOF','XPF']);
   const CURRENCY_SYMBOLS    = {
@@ -1527,10 +1528,10 @@
     VND: { name: 'Vietnamese Dong',          flag: '🇻🇳', country: 'Vietnam' },
     VUV: { name: 'Vanuatu Vatu',             flag: '🇻🇺', country: 'Vanuatu' },
     WST: { name: 'Samoan Tālā',              flag: '🇼🇸', country: 'Samoa' },
-    XAF: { name: 'Central African Franc',    flag: '🌍',  country: 'Central Africa' },
-    XCD: { name: 'East Caribbean Dollar',    flag: '🌎',  country: 'East Caribbean' },
-    XOF: { name: 'West African Franc',       flag: '🌍',  country: 'West Africa' },
-    XPF: { name: 'CFP Franc',                flag: '🌊',  country: 'French Polynesia' },
+    XAF: { name: 'Central African Franc',    flag: '🌐',  country: 'Central Africa' },
+    XCD: { name: 'East Caribbean Dollar',    flag: '🌐',  country: 'East Caribbean' },
+    XOF: { name: 'West African Franc',       flag: '🌐',  country: 'West Africa' },
+    XPF: { name: 'CFP Franc',                flag: '🌐',  country: 'French Polynesia' },
     YER: { name: 'Yemeni Rial',              flag: '🇾🇪', country: 'Yemen' },
     ZAR: { name: 'South African Rand',       flag: '🇿🇦', country: 'South Africa' },
     ZMW: { name: 'Zambian Kwacha',           flag: '🇿🇲', country: 'Zambia' },
@@ -1708,10 +1709,11 @@
   }
 
   // ── Populate selects ───────────────────────────────────────────────
-  function populateSelects() {
+  // pair (optional) sets the From/To outright, e.g. Restore defaults
+  function populateSelects(pair) {
     const saved = loadPair();
-    const prevFrom = fromSelect.value || saved.from;
-    const prevTo   = toSelect.value   || saved.to;
+    const prevFrom = pair?.from || fromSelect.value || saved.from;
+    const prevTo   = pair?.to   || toSelect.value   || saved.to;
     ensureEnabled(prevFrom, prevTo);
     // Options read "🇪🇺  Euro", so sort by name rather than code
     const enabled = getEnabledCurrencies().filter(c => CURRENCY_META[c])
@@ -1727,10 +1729,10 @@
       });
     });
     fromSelect.value = enabled.includes(prevFrom) ? prevFrom
-                     : enabled.includes('VND')    ? 'VND'
+                     : enabled.includes(DEFAULT_PAIR.from) ? DEFAULT_PAIR.from
                      : enabled[0];
     toSelect.value   = enabled.includes(prevTo)   ? prevTo
-                     : enabled.includes('USD')     ? 'USD'
+                     : enabled.includes(DEFAULT_PAIR.to)   ? DEFAULT_PAIR.to
                      : enabled.find(c => c !== fromSelect.value) || enabled[0];
     if (fromSelect.value === toSelect.value && enabled.length > 1) {
       toSelect.value = enabled.find(c => c !== fromSelect.value) || enabled[0];
@@ -1806,13 +1808,14 @@
     populateSelects();
   });
 
-  // Restores the default list; populateSelects() then re-adds the current From/To
-  // (ensureEnabled) so the pair you're converting is never switched off.
+  // Restore defaults: the default list and the default pair, then back to the top of
+  // settings so the new pair and list are in view. (Done re-runs any result.)
   document.getElementById('restore-defaults-btn').addEventListener('click', () => {
     saveEnabledCurrencies(DEFAULT_CURRENCIES);
     currencySearch.value = '';
-    populateSelects();
+    populateSelects(DEFAULT_PAIR);
     renderCurrencyToggles();
+    settingsPanel.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
   function swapPairValues() {

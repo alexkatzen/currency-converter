@@ -9,7 +9,7 @@ A currency converter for travelling: an installable web app that opens instantly
 - **Convert:** type an amount and tap **Convert to …**. You get the result, the rate, and when the rates were last updated. Below that is the same amount in each of your other currencies, with the current pair highlighted. Keep typing and the results update as you go.
 - **Swap:** tap the pair in the header to swap it. If a result is showing, it also converts that result back the other way.
 - **Change the pair:** tap the sliders button in the header to open settings, then pick From and To. Picking the same currency on both sides swaps them. Your pair is remembered.
-- **Your currencies:** in settings, choose which of the 160+ currencies appear in your results and pickers. You can search by code, name or country ("Vietnam"). **Restore defaults** resets the list to USD, EUR, THB, VND, TWD and CNY.
+- **Your currencies:** in settings, choose which of the 160+ currencies appear in your results and pickers. You can search by code, name or country ("Vietnam"). **Restore defaults** resets the list to USD, EUR, THB, VND, TWD and CNY, and the pair to USD → VND (the same as a first visit).
 - **Theme:** the moon/sun button switches between dark and light. It follows your system setting until you choose one.
 - **Volatility warning:** a warning appears when ARS, TRY, NGN, PKR, EGP, IRR, VES or ZWL is in the pair. These rates can move quickly, so check them before you pay.
 
