@@ -157,9 +157,12 @@
       font-size: 14px;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
-      overscroll-behavior: none;
       touch-action: manipulation;
     }
+    /* No bounce / pull-to-refresh on the page. Root only: overflow-x on both html and
+       body makes body a scroll container, and `none` there stopped trackpad/wheel
+       scrolls from reaching the page (desktop with a long results list). */
+    html { overscroll-behavior: none; }
 
     body {
       display: flex;
@@ -902,10 +905,7 @@
       margin-right: calc(0.3em + 2px);
       text-align: right;
       color: var(--text-dim);
-      font-weight: 500;
-      /* price-tag style, like the main result: smaller and riding high */
-      font-size: 0.75em;
-      vertical-align: calc(0.35em - 2px);
+      /* same size, weight and baseline as the number */
     }
     .multi-row .value-code,
     .multi-row .currency-name { display: none; }
